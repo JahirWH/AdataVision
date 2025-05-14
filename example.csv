@@ -1,0 +1,8 @@
+codigo,service,email,password,username,web,fecha
+001,Netflix,user1@example.com,P@ssw0rd123,netflix_user1,https://netflix.com,2024-03-15
+002,Spotify,music.lover@mail.com,Mu5ic!2024,spotify_fan,https://spotify.com,2024-02-20
+003,Amazon Prime,prime_user@domain.com,AmzPr1m3!,amazon_shopper,https://primevideo.com,2024-01-10
+004,Disney+,disney.fan@email.com,M1ckey!2024,disney_streamer,https://disneyplus.com,2023-12-05
+005,LinkedIn,professional@career.com,L1nk3d!nPro,linkedin_expert,https://linkedin.com,2024-03-01
+006,Dropbox,storage.user@cloud.com,Dr0pB0x!Secure,dropbox_owner,https://dropbox.com,2023-11-15
+007,Adobe Creative Cloud,designer@creativity.com,Cr3@t1v3!,adobe_designer,https://adobe.com,2024-02-28

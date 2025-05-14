@@ -1,0 +1,3 @@
+polars
+cryptography
+colorama
