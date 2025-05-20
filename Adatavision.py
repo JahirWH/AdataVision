@@ -26,7 +26,7 @@ CSV_HEADERS = ['codigo', 'service', 'email', 'password', 'username', 'web', 'fec
 class SplashScreen(QSplashScreen):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(650, 400)
+        self.setFixedSize(600, 300)
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         
         # Layout principal
@@ -37,7 +37,7 @@ class SplashScreen(QSplashScreen):
         title_label = QLabel("ADATAVISION")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("font-size: 36px; font-weight: bold; color: #2C3E50;")
-        layout.addWidget(title_label)hh
+        layout.addWidget(title_label)
         
         # Barra de progreso
         self.progress_bar = QProgressBar()
@@ -91,7 +91,7 @@ class LoginDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Acceso a Adatavision")
-        self.setFixedSize(800, 600)
+        self.setFixedSize(400, 200)
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         
         self.username = ""
@@ -132,9 +132,9 @@ class LoginDialog(QDialog):
                 padding: 5px;
                 font-size: 14px;
             }
-            # QLineEdit:focus {
-            #     border: 2px solid #3498DB;
-            # }
+            QLineEdit:focus {
+                border: 2px solid #3498DB;
+            }
         """)
         user_layout.addWidget(user_label)
         user_layout.addWidget(self.user_input)
@@ -1124,4 +1124,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-    
