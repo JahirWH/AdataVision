@@ -29,26 +29,26 @@ class SplashScreen(QSplashScreen):
         self.setFixedSize(600, 300)
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         
-        # Layout principal
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+        # # Layout principal
+        # layout = QVBoxLayout()
+        # self.setLayout(layout)
         
-        # Título
-        title_label = QLabel("ADATAVISION")
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet("font-size: 36px; font-weight: bold; color: #2C3E50;")
-        layout.addWidget(title_label)
+        # # Título
+        # title_label = QLabel("ADATAVISION")
+        # title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # title_label.setStyleSheet("font-size: 36px; font-weight: bold; color: #2C3E50;")
+        # layout.addWidget(title_label)
         
-        # Status
-        self.status_label = QLabel("Iniciando...")
-        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.status_label.setStyleSheet("font-size: 14px; color: #7F8C8D;")
-        layout.addWidget(self.status_label)
+        # # Status
+        # self.status_label = QLabel("Iniciando...")
+        # self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.status_label.setStyleSheet("font-size: 14px; color: #7F8C8D;")
+        # layout.addWidget(self.status_label)
         
-        # Timer para cerrar el splash screen
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.close)
-        self.timer.start(2000)  # Cerrar después de 2 segundos
+        # # Timer para cerrar el splash screen
+        # self.timer = QTimer()
+        # self.timer.timeout.connect(self.close)
+        # self.timer.start(2000)  # Cerrar después de 2 segundos
 
 class LoginDialog(QDialog):
     def __init__(self, parent=None):
@@ -61,80 +61,67 @@ class LoginDialog(QDialog):
         
         # Layout principal
         main_layout = QHBoxLayout()
+        main_layout.setContentsMargins(20, 20, 20, 20)
         self.setLayout(main_layout)
         
         # Panel izquierdo (formulario)
         left_panel = QWidget()
         left_panel.setStyleSheet("""
             QWidget {
-                background-color: grey;
+                background-color: #1a1a2e;
                 border-radius: 10px;
             }
         """)
         left_layout = QVBoxLayout(left_panel)
-        left_layout.setContentsMargins(40, 40, 40, 40)
+        left_layout.setContentsMargins(30, 30, 30, 30)
+        left_layout.setSpacing(20)
+        
+        left_layout.addStretch(1)
         
         # Título del formulario
-        form_title = QLabel("Usuario")
+        form_title = QLabel("Usuario login")
         form_title.setStyleSheet("""
             font-size: 24px;
             font-weight: bold;
-            color: #2C3E50;
-            margin-bottom: 20px;
+            color: #00ff9f;
+            margin: 0;
         """)
+        form_title.setAlignment(Qt.AlignmentFlag.AlignLeft)
         left_layout.addWidget(form_title)
         
         # Campo de usuario
-        user_label = QLabel("Usuario")
-        user_label.setStyleSheet("font-size: 14px; color: #7F8C8D; margin-top: 0px;")
+        user_label = QLabel("Ingresa un usuario")
+        user_label.setStyleSheet("font-size: 18px; color: #00ff9f;")
+        user_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.user_input = QLineEdit()
         self.user_input.setPlaceholderText("Máximo 6 letras")
         self.user_input.setMaxLength(6)
         self.user_input.setStyleSheet("""
             QLineEdit {
-                border: 2px solid #E0E0E0;
+                border: 2px solid #00ff9f;
                 border-radius: 8px;
                 padding: 12px;
                 font-size: 14px;
-                background-color: #F8F9FA;
+                background-color: #16213e;
+                color: #00ff9f;
             }
             QLineEdit:focus {
-                border: 2px solid #3498DB;
-                background-color: #FFFFFF;
+                border: 2px solid #ff00ff;
+                background-color: #16213e;
             }
         """)
         left_layout.addWidget(user_label)
         left_layout.addWidget(self.user_input)
         
-        # Campo de contraseña
-        # password_label = QLabel("Contraseña")
-        # password_label.setStyleSheet("font-size: 14px; color: #7F8C8D; margin-top: 20px;")
-        # self.password_input = QLineEdit()
-        # self.password_input.setPlaceholderText("Ingrese su contraseña")
-        # self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        # self.password_input.setStyleSheet("""
-        #     QLineEdit {
-        #         border: 2px solid #E0E0E0;
-        #         border-radius: 8px;
-        #         padding: 12px;
-        #         font-size: 14px;
-        #         background-color: #F8F9FA;
-        #     }
-        #     QLineEdit:focus {
-        #         border: 2px solid #3498DB;
-        #         background-color: #FFFFFF;
-        #     }
-        # """)
-        # left_layout.addWidget(password_label)
-        # left_layout.addWidget(self.password_input)
-        
         # Botones
         button_layout = QHBoxLayout()
+        button_layout.setSpacing(10)
+        
         self.login_button = QPushButton("Ingresar")
         self.login_button.setStyleSheet("""
             QPushButton {
-                background-color: #3498DB;
-                color: white;
+                background-color: #00ff9f;
+                color: #1a1a2e;
                 border-radius: 8px;
                 padding: 12px;
                 font-size: 14px;
@@ -142,7 +129,8 @@ class LoginDialog(QDialog):
                 min-width: 120px;
             }
             QPushButton:hover {
-                background-color: #2980B9;
+                background-color:rgb(0, 102, 255);
+                color:rgb(41, 40, 40);
             }
         """)
         self.login_button.clicked.connect(self.accept_login)
@@ -150,8 +138,8 @@ class LoginDialog(QDialog):
         self.exit_button = QPushButton("Salir")
         self.exit_button.setStyleSheet("""
             QPushButton {
-                background-color: #E74C3C;
-                color: white;
+                background-color: #ff00ff;
+                color: #ffffff;
                 border-radius: 8px;
                 padding: 12px;
                 font-size: 14px;
@@ -159,7 +147,8 @@ class LoginDialog(QDialog):
                 min-width: 120px;
             }
             QPushButton:hover {
-                background-color: #C0392B;
+                background-color:rgba(2, 8, 6, 0.8);
+                color:rgb(180, 180, 180);
             }
         """)
         self.exit_button.clicked.connect(self.reject)
@@ -168,69 +157,76 @@ class LoginDialog(QDialog):
         button_layout.addWidget(self.exit_button)
         left_layout.addLayout(button_layout)
         
+        left_layout.addStretch(1)
+        
         # Panel derecho (título y descripción)
         right_panel = QWidget()
         right_panel.setStyleSheet("""
             QWidget {
-                background-color: #4444;
+                background-color: #00ff9f;
                 border-radius: 10px;
             }
         """)
         right_layout = QVBoxLayout(right_panel)
-        right_layout.setContentsMargins(40, 40, 40, 40)
+        right_layout.setContentsMargins(20, 20, 20, 20)
+        right_layout.setSpacing(20)
+        
+        right_layout.addStretch(1)
         
         # Título principal
         main_title = QLabel("ADATAVISION")
         main_title.setStyleSheet("""
             font-size: 36px;
             font-weight: bold;
-            color: white;
+            color: black;
             margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ff9f;
         """)
         main_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         right_layout.addWidget(main_title)
         
         # Descripción
         description = QLabel("""Como funciona?\n
-        - Cada que ingresas un usuario y una contraseña\n
+          - Cada que ingresas un usuario y una contraseña\n
           se combinan para crear una clave única\n
-        - Con esta clave se encriptan los datos\n
-        - No podrás desencriptar a menos que tengas:\n
+          - Con esta clave se encriptan los datos\n
+          - No podrás desencriptar a menos que tengas:\n
           el usuario y contraseña originales\n
           o la clave binaria""")
         description.setStyleSheet("""
-            font-size: 15px;
-            color: white;
-            margin-bottom: 10px;
-            line-height: 1.5;
+            color: rgb(255, 255, 255);
+            font-size: 13px;
+            margin:0;
+            panding:40px;
+            background-color:rgba(27, 27, 27, 0.91);
         """)
         description.setAlignment(Qt.AlignmentFlag.AlignLeft)
         right_layout.addWidget(description)
         
-        # Versión
-        version = QLabel("Versión 2.0")
-        version.setStyleSheet("""
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
-        """)
-        version.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        right_layout.addWidget(version)
+        # Agregar imagen
+        image_label = QLabel()
+        pixmap = QPixmap("cyberpunk.png")
+        scaled_pixmap = pixmap.scaled(250, 170, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        image_label.setPixmap(scaled_pixmap)
+        image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        right_layout.addWidget(image_label)
         
-        # Agregar los paneles al layout principal
-        main_layout.addWidget(left_panel, 1)
-        main_layout.addWidget(right_panel, 1)
+        right_layout.addStretch(1)
+        
+        main_layout.addWidget(left_panel)
+        main_layout.addWidget(right_panel)
     
     def accept_login(self):
         username = self.user_input.text()
-        password = self.password_input.text()
+        # password = self.password_input.text()
         
         if not username.isalpha() or len(username) > 6:
             QMessageBox.warning(self, "Error", "El usuario debe contener solo letras (máximo 6)")
             return
             
-        if not password:
-            QMessageBox.warning(self, "Error", "Por favor ingrese su contraseña")
-            return
+        # if not password:
+        #     QMessageBox.warning(self, "Error", "Por favor ingrese su contraseña")
+        #     return
             
         self.username = username
         self.accept()
@@ -604,37 +600,156 @@ class AdatavisionMainWindow(QMainWindow):
         self.setWindowTitle("Adatavision - Gestor de Contraseñas")
         self.setMinimumSize(1000, 600)
         
+        # Establecer el estilo cyberpunk para la ventana principal
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #0a0a0f;
+            }
+            QWidget {
+                background-color: #0a0a0f;
+                color: #00ff9f;
+            }
+            QTabWidget::pane {
+                border: 2px solid #00ff9f;
+                border-radius: 5px;
+                background-color: #1a1a2e;
+            }
+            QTabBar::tab {
+                background-color: #1a1a2e;
+                color: #00ff9f;
+                border: 2px solid #00ff9f;
+                border-bottom: none;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+                padding: 8px 20px;
+                margin-right: 2px;
+            }
+            QTabBar::tab:selected {
+                background-color: #00ff9f;
+                color: #1a1a2e;
+            }
+            QTabBar::tab:hover {
+                background-color: #00ff9f33;
+            }
+            QPushButton {
+                background-color: #1a1a2e;
+                color: #00ff9f;
+                border: 2px solid #00ff9f;
+                border-radius: 5px;
+                padding: 8px 15px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #00ff9f;
+                color: #1a1a2e;
+            }
+            QLineEdit {
+                background-color: #1a1a2e;
+                color: #00ff9f;
+                border: 2px solid #00ff9f;
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QLineEdit:focus {
+                border: 2px solid #ff00ff;
+            }
+            QTableWidget {
+                background-color: #1a1a2e;
+                color: #00ff9f;
+                gridline-color: #00ff9f;
+                border: 2px solid #00ff9f;
+                border-radius: 5px;
+            }
+            QTableWidget::item {
+                padding: 5px;
+            }
+            QTableWidget::item:selected {
+                background-color: #00ff9f33;
+                color: #00ff9f;
+            }
+            QHeaderView::section {
+                background-color: #1a1a2e;
+                color: #00ff9f;
+                border: 1px solid #00ff9f;
+                padding: 5px;
+            }
+            QMenuBar {
+                background-color: #1a1a2e;
+                color: #00ff9f;
+            }
+            QMenuBar::item {
+                background-color: #1a1a2e;
+                color: #00ff9f;
+            }
+            QMenuBar::item:selected {
+                background-color: #00ff9f;
+                color: #1a1a2e;
+            }
+            QMenu {
+                background-color: #1a1a2e;
+                color: #00ff9f;
+                border: 2px solid #00ff9f;
+            }
+            QMenu::item:selected {
+                background-color: #00ff9f;
+                color: #1a1a2e;
+            }
+            QStatusBar {
+                background-color: #1a1a2e;
+                color: #00ff9f;
+            }
+            QLabel {
+                color: #00ff9f;
+            }
+        """)
+        
         # Widget central
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
         # Layout principal
         main_layout = QVBoxLayout(central_widget)
+        main_layout.setSpacing(10)
+        main_layout.setContentsMargins(10, 10, 10, 10)
         
-        # Barra de estado
+        # Barra de estado con estilo cyberpunk
         self.status_bar = self.statusBar()
+        self.status_bar.setStyleSheet("""
+            QStatusBar {
+                background-color: #1a1a2e;
+                color: #00ff9f;
+                border-top: 2px solid #00ff9f;
+            }
+        """)
         self.status_bar.showMessage(f"Usuario: {self.username} | Bienvenido a Adatavision")
         
-        # Área de información
+        # Área de información con estilo cyberpunk
         info_frame = QFrame()
         info_frame.setFrameShape(QFrame.Shape.StyledPanel)
-        info_frame.setStyleSheet("background-color: #ECF0F1; border-radius: 5px;")
+        info_frame.setStyleSheet("""
+            QFrame {
+                background-color: #1a1a2e;
+                border: 2px solid #00ff9f;
+                border-radius: 5px;
+            }
+        """)
         
         info_layout = QHBoxLayout(info_frame)
+        info_layout.setSpacing(20)
         
         # Modificación
         self.modification_label = QLabel("Última modificación: Cargando...")
-        self.modification_label.setStyleSheet("color: #2C3E50;")
+        self.modification_label.setStyleSheet("color: #00ff9f; font-weight: bold;")
         info_layout.addWidget(self.modification_label)
         
         # Contraseña temporal
         self.temp_password_label = QLabel("Contraseña temporal: Cargando...")
-        self.temp_password_label.setStyleSheet("color: #2980B9;")
+        self.temp_password_label.setStyleSheet("color: #ff00ff; font-weight: bold;")
         info_layout.addWidget(self.temp_password_label)
         
         # Estado del archivo
         self.file_status_label = QLabel("Estado del archivo: Cargando...")
-        self.file_status_label.setStyleSheet("color: #27AE60;")
+        self.file_status_label.setStyleSheet("color: #00ffff; font-weight: bold;")
         info_layout.addWidget(self.file_status_label)
         
         main_layout.addWidget(info_frame)
