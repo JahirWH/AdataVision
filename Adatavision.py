@@ -39,121 +39,110 @@ class SplashScreen(QSplashScreen):
         title_label.setStyleSheet("font-size: 36px; font-weight: bold; color: #2C3E50;")
         layout.addWidget(title_label)
         
-        # Barra de progreso
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setTextVisible(False)
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: 2px solid #2C3E50;
-                border-radius: 5px;
-                background-color: #FFFFFF;
-                height: 20px;
-            }
-            QProgressBar::chunk {
-                background-color: #3498DB;
-                width: 5px;
-            }
-        """)
-        layout.addWidget(self.progress_bar)
-        
         # Status
         self.status_label = QLabel("Iniciando...")
         self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_label.setStyleSheet("font-size: 14px; color: #7F8C8D;")
         layout.addWidget(self.status_label)
         
-        # Timer para actualizar la barra de progreso
+        # Timer para cerrar el splash screen
         self.timer = QTimer()
-        self.timer.timeout.connect(self.update_progress)
-        self.counter = 0
-        self.timer.start(40)  # 40ms por actualización
-        
-    def update_progress(self):
-        self.counter += 1
-        self.progress_bar.setValue(self.counter)
-        
-        if self.counter <= 30:
-            self.status_label.setText("Cargando componentes...")
-        elif self.counter <= 60:
-            self.status_label.setText("Verificando archivos...")
-        elif self.counter <= 90:
-            self.status_label.setText("Inicializando interfaz...")
-        else:
-            self.status_label.setText("¡Listo!")
-        
-        if self.counter >= 100:
-            self.timer.stop()
-            self.close()
+        self.timer.timeout.connect(self.close)
+        self.timer.start(2000)  # Cerrar después de 2 segundos
 
 class LoginDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Acceso a Adatavision")
-        self.setFixedSize(400, 200)
+        self.setFixedSize(800, 500)
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         
         self.username = ""
         
         # Layout principal
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+        main_layout = QHBoxLayout()
+        self.setLayout(main_layout)
         
-        # Título
-        title_label = QLabel("ADATAVISION")
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet("font-size: 24px; font-weight: bold; color: #2C3E50;")
-        layout.addWidget(title_label)
+        # Panel izquierdo (formulario)
+        left_panel = QWidget()
+        left_panel.setStyleSheet("""
+            QWidget {
+                background-color: grey;
+                border-radius: 10px;
+            }
+        """)
+        left_layout = QVBoxLayout(left_panel)
+        left_layout.setContentsMargins(40, 40, 40, 40)
         
-        # Subtítulo
-        subtitle_label = QLabel("Gestor de Contraseñas")
-        subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle_label.setStyleSheet("font-size: 14px; color: #7F8C8D;")
-        layout.addWidget(subtitle_label)
-        
-        # Separador
-        separator = QFrame()
-        separator.setFrameShape(QFrame.Shape.HLine)
-        separator.setStyleSheet("background-color: #BDC3C7;")
-        layout.addWidget(separator)
+        # Título del formulario
+        form_title = QLabel("Usuario")
+        form_title.setStyleSheet("""
+            font-size: 24px;
+            font-weight: bold;
+            color: #2C3E50;
+            margin-bottom: 20px;
+        """)
+        left_layout.addWidget(form_title)
         
         # Campo de usuario
-        user_layout = QHBoxLayout()
-        user_label = QLabel("Usuario:")
-        user_label.setStyleSheet("font-size: 14px;")
+        user_label = QLabel("Usuario")
+        user_label.setStyleSheet("font-size: 14px; color: #7F8C8D; margin-top: 0px;")
         self.user_input = QLineEdit()
         self.user_input.setPlaceholderText("Máximo 6 letras")
         self.user_input.setMaxLength(6)
         self.user_input.setStyleSheet("""
             QLineEdit {
-                border: 2px solid #BDC3C7;
-                border-radius: 5px;
-                padding: 5px;
+                border: 2px solid #E0E0E0;
+                border-radius: 8px;
+                padding: 12px;
                 font-size: 14px;
+                background-color: #F8F9FA;
             }
             QLineEdit:focus {
                 border: 2px solid #3498DB;
+                background-color: #FFFFFF;
             }
         """)
-        user_layout.addWidget(user_label)
-        user_layout.addWidget(self.user_input)
-        layout.addLayout(user_layout)
+        left_layout.addWidget(user_label)
+        left_layout.addWidget(self.user_input)
+        
+        # Campo de contraseña
+        # password_label = QLabel("Contraseña")
+        # password_label.setStyleSheet("font-size: 14px; color: #7F8C8D; margin-top: 20px;")
+        # self.password_input = QLineEdit()
+        # self.password_input.setPlaceholderText("Ingrese su contraseña")
+        # self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+        # self.password_input.setStyleSheet("""
+        #     QLineEdit {
+        #         border: 2px solid #E0E0E0;
+        #         border-radius: 8px;
+        #         padding: 12px;
+        #         font-size: 14px;
+        #         background-color: #F8F9FA;
+        #     }
+        #     QLineEdit:focus {
+        #         border: 2px solid #3498DB;
+        #         background-color: #FFFFFF;
+        #     }
+        # """)
+        # left_layout.addWidget(password_label)
+        # left_layout.addWidget(self.password_input)
         
         # Botones
         button_layout = QHBoxLayout()
         self.login_button = QPushButton("Ingresar")
         self.login_button.setStyleSheet("""
             QPushButton {
-                background-color: #2ECC71;
+                background-color: #3498DB;
                 color: white;
-                border-radius: 5px;
-                padding: 8px;
+                border-radius: 8px;
+                padding: 12px;
                 font-size: 14px;
                 font-weight: bold;
+                min-width: 120px;
             }
             QPushButton:hover {
-                background-color: #27AE60;
+                background-color: #2980B9;
             }
         """)
         self.login_button.clicked.connect(self.accept_login)
@@ -163,10 +152,11 @@ class LoginDialog(QDialog):
             QPushButton {
                 background-color: #E74C3C;
                 color: white;
-                border-radius: 5px;
-                padding: 8px;
+                border-radius: 8px;
+                padding: 12px;
                 font-size: 14px;
                 font-weight: bold;
+                min-width: 120px;
             }
             QPushButton:hover {
                 background-color: #C0392B;
@@ -176,13 +166,72 @@ class LoginDialog(QDialog):
         
         button_layout.addWidget(self.login_button)
         button_layout.addWidget(self.exit_button)
-        layout.addLayout(button_layout)
+        left_layout.addLayout(button_layout)
+        
+        # Panel derecho (título y descripción)
+        right_panel = QWidget()
+        right_panel.setStyleSheet("""
+            QWidget {
+                background-color: #4444;
+                border-radius: 10px;
+            }
+        """)
+        right_layout = QVBoxLayout(right_panel)
+        right_layout.setContentsMargins(40, 40, 40, 40)
+        
+        # Título principal
+        main_title = QLabel("ADATAVISION")
+        main_title.setStyleSheet("""
+            font-size: 36px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 20px;
+        """)
+        main_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        right_layout.addWidget(main_title)
+        
+        # Descripción
+        description = QLabel("""Como funciona?\n
+        - Cada que ingresas un usuario y una contraseña\n
+          se combinan para crear una clave única\n
+        - Con esta clave se encriptan los datos\n
+        - No podrás desencriptar a menos que tengas:\n
+          el usuario y contraseña originales\n
+          o la clave binaria""")
+        description.setStyleSheet("""
+            font-size: 15px;
+            color: white;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        """)
+        description.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        right_layout.addWidget(description)
+        
+        # Versión
+        version = QLabel("Versión 2.0")
+        version.setStyleSheet("""
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        """)
+        version.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        right_layout.addWidget(version)
+        
+        # Agregar los paneles al layout principal
+        main_layout.addWidget(left_panel, 1)
+        main_layout.addWidget(right_panel, 1)
     
     def accept_login(self):
         username = self.user_input.text()
+        password = self.password_input.text()
+        
         if not username.isalpha() or len(username) > 6:
             QMessageBox.warning(self, "Error", "El usuario debe contener solo letras (máximo 6)")
             return
+            
+        if not password:
+            QMessageBox.warning(self, "Error", "Por favor ingrese su contraseña")
+            return
+            
         self.username = username
         self.accept()
 
