@@ -26,36 +26,12 @@ CSV_HEADERS = ['codigo', 'service', 'email', 'password', 'username', 'web', 'fec
 class SplashScreen(QSplashScreen):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(600, 300)
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+   
         
-        # # Layout principal
-        # layout = QVBoxLayout()
-        # self.setLayout(layout)
-        
-        # # Título
-        # title_label = QLabel("ADATAVISION")
-        # title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # title_label.setStyleSheet("font-size: 36px; font-weight: bold; color: #2C3E50;")
-        # layout.addWidget(title_label)
-        
-        # # Status
-        # self.status_label = QLabel("Iniciando...")
-        # self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # self.status_label.setStyleSheet("font-size: 14px; color: #7F8C8D;")
-        # layout.addWidget(self.status_label)
-        
-        # # Timer para cerrar el splash screen
-        # self.timer = QTimer()
-        # self.timer.timeout.connect(self.close)
-        # self.timer.start(2000)  # Cerrar después de 2 segundos
-
+   
 class LoginDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Acceso a Adatavision")
-        self.setFixedSize(800, 500)
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         
         self.username = ""
         
@@ -68,49 +44,41 @@ class LoginDialog(QDialog):
         left_panel = QWidget()
         left_panel.setStyleSheet("""
             QWidget {
-                background-color: #1a1a2e;
-                border-radius: 10px;
+                background-color: #2d2d2d;
+                border-radius: 4px;
             }
         """)
         left_layout = QVBoxLayout(left_panel)
-        left_layout.setContentsMargins(30, 30, 30, 30)
-        left_layout.setSpacing(20)
-        
-        left_layout.addStretch(1)
+        left_layout.setContentsMargins(20, 20, 20, 20)
+        left_layout.setSpacing(15)
         
         # Título del formulario
         form_title = QLabel("Usuario login")
         form_title.setStyleSheet("""
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
-            color: #00ff9f;
-            margin: 0;
+            color: #ffffff;
         """)
         form_title.setAlignment(Qt.AlignmentFlag.AlignLeft)
         left_layout.addWidget(form_title)
         
         # Campo de usuario
-        user_label = QLabel("Ingresa un usuario")
-        user_label.setStyleSheet("font-size: 18px; color: #00ff9f;")
-        user_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.user_input = QLineEdit()
         self.user_input.setPlaceholderText("Máximo 6 letras")
         self.user_input.setMaxLength(6)
         self.user_input.setStyleSheet("""
             QLineEdit {
-                border: 2px solid #00ff9f;
-                border-radius: 8px;
-                padding: 12px;
+                border: 1px solid #404040;
+                border-radius: 4px;
+                padding: 8px;
                 font-size: 14px;
-                background-color: #16213e;
-                color: #00ff9f;
+                background-color: #1a1a1a;
+                color: #ffffff;
             }
             QLineEdit:focus {
-                border: 2px solid #ff00ff;
-                background-color: #16213e;
+                border: 1px solid #666666;
             }
         """)
-        left_layout.addWidget(user_label)
         left_layout.addWidget(self.user_input)
         
         # Botones
@@ -120,17 +88,15 @@ class LoginDialog(QDialog):
         self.login_button = QPushButton("Ingresar")
         self.login_button.setStyleSheet("""
             QPushButton {
-                background-color: #00ff9f;
-                color: #1a1a2e;
-                border-radius: 8px;
-                padding: 12px;
+                background-color: #404040;
+                color: #ffffff;
+                border-radius: 4px;
+                padding: 8px;
                 font-size: 14px;
-                font-weight: bold;
                 min-width: 120px;
             }
             QPushButton:hover {
-                background-color:rgb(0, 102, 255);
-                color:rgb(41, 40, 40);
+                background-color: #666666;
             }
         """)
         self.login_button.clicked.connect(self.accept_login)
@@ -138,17 +104,15 @@ class LoginDialog(QDialog):
         self.exit_button = QPushButton("Salir")
         self.exit_button.setStyleSheet("""
             QPushButton {
-                background-color: #ff00ff;
+                background-color: #404040;
                 color: #ffffff;
-                border-radius: 8px;
-                padding: 12px;
+                border-radius: 4px;
+                padding: 8px;
                 font-size: 14px;
-                font-weight: bold;
                 min-width: 120px;
             }
             QPushButton:hover {
-                background-color:rgba(2, 8, 6, 0.8);
-                color:rgb(180, 180, 180);
+                background-color: #666666;
             }
         """)
         self.exit_button.clicked.connect(self.reject)
@@ -157,64 +121,44 @@ class LoginDialog(QDialog):
         button_layout.addWidget(self.exit_button)
         left_layout.addLayout(button_layout)
         
-        left_layout.addStretch(1)
-        
-        # Panel derecho (título y descripción)
+        # Panel derecho (descripción)
         right_panel = QWidget()
         right_panel.setStyleSheet("""
             QWidget {
-                background-color: #00ff9f;
-                border-radius: 10px;
+                background-color: #2d2d2d;
+                border-radius: 4px;
             }
         """)
         right_layout = QVBoxLayout(right_panel)
         right_layout.setContentsMargins(20, 20, 20, 20)
-        right_layout.setSpacing(20)
         
-        right_layout.addStretch(1)
+        # Título y descripción en un solo párrafo
+        description_text = """
+        <p style='color: white; font-size: 14px; margin: 0;'>
+        <b>ADATAVISION</b><br>
+        Sistema de encriptación que combina usuario y contraseña para crear una clave única. 
+        Los datos se encriptan automáticamente y solo podrán ser desencriptados con las credenciales originales.
+        </p>
+        """
         
-        # Título principal
-        main_title = QLabel("ADATAVISION")
-        main_title.setStyleSheet("""
-            font-size: 36px;
-            font-weight: bold;
-            color: black;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px #00ff9f;
-        """)
-        main_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        right_layout.addWidget(main_title)
-        
-        # Descripción
-        description = QLabel("""Como funciona?\n
-          - Cada que ingresas un usuario y una contraseña\n
-          se combinan para crear una clave única\n
-          - Con esta clave se encriptan los datos\n
-          - No podrás desencriptar a menos que tengas:\n
-          el usuario y contraseña originales\n
-          o la clave binaria""")
-        description.setStyleSheet("""
-            color: rgb(255, 255, 255);
-            font-size: 13px;
-            margin:0;
-            panding:40px;
-            background-color:rgba(27, 27, 27, 0.91);
-        """)
-        description.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        right_layout.addWidget(description)
+        description_label = QLabel(description_text)
+        description_label.setWordWrap(True)
+        description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        right_layout.addWidget(description_label)
         
         # Agregar imagen
         image_label = QLabel()
         pixmap = QPixmap("cyberpunk.png")
-        scaled_pixmap = pixmap.scaled(250, 170, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        scaled_pixmap = pixmap.scaled(200, 140, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         image_label.setPixmap(scaled_pixmap)
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         right_layout.addWidget(image_label)
         
-        right_layout.addStretch(1)
-        
         main_layout.addWidget(left_panel)
         main_layout.addWidget(right_panel)
+        
+        # Establecer tamaño fijo
+        self.setFixedSize(700, 400)
     
     def accept_login(self):
         username = self.user_input.text()
@@ -230,6 +174,10 @@ class LoginDialog(QDialog):
             
         self.username = username
         self.accept()
+
+
+
+
 
 class PasswordDialog(QDialog):
     def __init__(self, mode, parent=None):
@@ -303,7 +251,7 @@ class PasswordGeneratorDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Generador de Contraseñas")
-        self.setFixedSize(450, 300)
+        self.setFixedSize(600, 500)  # Aumentado el tamaño
         
         # Layout principal
         layout = QVBoxLayout()
@@ -311,40 +259,82 @@ class PasswordGeneratorDialog(QDialog):
         
         # Título
         title_label = QLabel("Generador de Contraseñas")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        title_label.setStyleSheet("""
+            font-size: 24px; 
+            font-weight: bold;
+            color: #00ff9f;
+            margin-bottom: 20px;
+        """)
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
         
         # Longitud de la contraseña
         length_layout = QHBoxLayout()
         length_label = QLabel("Longitud:")
+        length_label.setStyleSheet("font-size: 16px;")
         self.length_input = QLineEdit()
         self.length_input.setPlaceholderText("Cantidad de caracteres")
         self.length_input.setText("12")
+        self.length_input.setStyleSheet("""
+            QLineEdit {
+                padding: 8px;
+                font-size: 14px;
+                min-width: 200px;
+            }
+        """)
         length_layout.addWidget(length_label)
         length_layout.addWidget(self.length_input)
         layout.addLayout(length_layout)
         
         # Opciones de caracteres
         options_layout = QGridLayout()
+        options_layout.setSpacing(15)
         
         self.include_lowercase = QComboBox()
         self.include_lowercase.addItems(["Incluir minúsculas", "No incluir minúsculas"])
+        self.include_lowercase.setStyleSheet("""
+            QComboBox {
+                padding: 8px;
+                font-size: 14px;
+                min-width: 200px;
+            }
+        """)
         options_layout.addWidget(QLabel("Minúsculas:"), 0, 0)
         options_layout.addWidget(self.include_lowercase, 0, 1)
         
         self.include_uppercase = QComboBox()
         self.include_uppercase.addItems(["Incluir mayúsculas", "No incluir mayúsculas"])
+        self.include_uppercase.setStyleSheet("""
+            QComboBox {
+                padding: 8px;
+                font-size: 14px;
+                min-width: 200px;
+            }
+        """)
         options_layout.addWidget(QLabel("Mayúsculas:"), 1, 0)
         options_layout.addWidget(self.include_uppercase, 1, 1)
         
         self.include_numbers = QComboBox()
         self.include_numbers.addItems(["Incluir números", "No incluir números"])
+        self.include_numbers.setStyleSheet("""
+            QComboBox {
+                padding: 8px;
+                font-size: 14px;
+                min-width: 200px;
+            }
+        """)
         options_layout.addWidget(QLabel("Números:"), 2, 0)
         options_layout.addWidget(self.include_numbers, 2, 1)
         
         self.include_symbols = QComboBox()
         self.include_symbols.addItems(["Incluir símbolos", "No incluir símbolos"])
+        self.include_symbols.setStyleSheet("""
+            QComboBox {
+                padding: 8px;
+                font-size: 14px;
+                min-width: 200px;
+            }
+        """)
         options_layout.addWidget(QLabel("Símbolos:"), 3, 0)
         options_layout.addWidget(self.include_symbols, 3, 1)
         
@@ -357,31 +347,55 @@ class PasswordGeneratorDialog(QDialog):
                 background-color: #3498DB;
                 color: white;
                 border-radius: 5px;
-                padding: 10px;
-                font-size: 14px;
+                padding: 15px;
+                font-size: 16px;
+                font-weight: bold;
+                min-width: 250px;
             }
             QPushButton:hover {
                 background-color: #2980B9;
             }
         """)
         self.generate_button.clicked.connect(self.generate_passwords)
-        layout.addWidget(self.generate_button)
+        layout.addWidget(self.generate_button, alignment=Qt.AlignmentFlag.AlignCenter)
         
         # Área de resultados
         result_label = QLabel("Contraseñas Generadas:")
-        result_label.setStyleSheet("font-weight: bold;")
+        result_label.setStyleSheet("font-size: 18px; font-weight: bold; margin-top: 20px;")
         layout.addWidget(result_label)
         
         self.results_area = QTableWidget(2, 2)
         self.results_area.setHorizontalHeaderLabels(["Contraseña", "Acciones"])
         self.results_area.horizontalHeader().setStretchLastSection(True)
         self.results_area.verticalHeader().setVisible(False)
+        self.results_area.setStyleSheet("""
+            QTableWidget {
+                font-size: 14px;
+                min-height: 150px;
+            }
+            QTableWidget::item {
+                padding: 10px;
+            }
+        """)
         layout.addWidget(self.results_area)
         
         # Botón para cerrar
         self.close_button = QPushButton("Cerrar")
+        self.close_button.setStyleSheet("""
+            QPushButton {
+                background-color: #E74C3C;
+                color: white;
+                border-radius: 5px;
+                padding: 10px;
+                font-size: 14px;
+                min-width: 150px;
+            }
+            QPushButton:hover {
+                background-color: #C0392B;
+            }
+        """)
         self.close_button.clicked.connect(self.accept)
-        layout.addWidget(self.close_button)
+        layout.addWidget(self.close_button, alignment=Qt.AlignmentFlag.AlignCenter)
         
         self.generated_passwords = []
     
@@ -445,7 +459,7 @@ class KeyGeneratorDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Generador de Claves")
-        self.setFixedSize(400, 250)
+        self.setFixedSize(500, 400)  # Aumentado el tamaño
         
         # Layout principal
         layout = QVBoxLayout()
@@ -453,16 +467,29 @@ class KeyGeneratorDialog(QDialog):
         
         # Título
         title_label = QLabel("Generador de Claves de Encriptación")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        title_label.setStyleSheet("""
+            font-size: 24px; 
+            font-weight: bold;
+            color: #00ff9f;
+            margin-bottom: 20px;
+        """)
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
         
         # Campo de usuario
         user_layout = QHBoxLayout()
         user_label = QLabel("Usuario:")
+        user_label.setStyleSheet("font-size: 16px;")
         self.user_input = QLineEdit()
         self.user_input.setPlaceholderText("Máximo 6 letras")
         self.user_input.setMaxLength(6)
+        self.user_input.setStyleSheet("""
+            QLineEdit {
+                padding: 8px;
+                font-size: 14px;
+                min-width: 200px;
+            }
+        """)
         user_layout.addWidget(user_label)
         user_layout.addWidget(self.user_input)
         layout.addLayout(user_layout)
@@ -470,9 +497,17 @@ class KeyGeneratorDialog(QDialog):
         # Campo de clave numérica
         key_layout = QHBoxLayout()
         key_label = QLabel("Clave numérica:")
+        key_label.setStyleSheet("font-size: 16px;")
         self.key_input = QLineEdit()
         self.key_input.setPlaceholderText("Máximo 6 dígitos")
         self.key_input.setMaxLength(6)
+        self.key_input.setStyleSheet("""
+            QLineEdit {
+                padding: 8px;
+                font-size: 14px;
+                min-width: 200px;
+            }
+        """)
         key_layout.addWidget(key_label)
         key_layout.addWidget(self.key_input)
         layout.addLayout(key_layout)
@@ -481,11 +516,19 @@ class KeyGeneratorDialog(QDialog):
         self.key_display = QLineEdit()
         self.key_display.setReadOnly(True)
         self.key_display.setPlaceholderText("La clave generada se mostrará aquí")
-        self.key_display.setStyleSheet("background-color: #F0F0F0;")
+        self.key_display.setStyleSheet("""
+            QLineEdit {
+                background-color: #1a1a2e;
+                padding: 10px;
+                font-size: 14px;
+                min-height: 40px;
+            }
+        """)
         layout.addWidget(self.key_display)
         
         # Botones
         button_layout = QHBoxLayout()
+        button_layout.setSpacing(10)
         
         self.generate_button = QPushButton("Generar Clave")
         self.generate_button.setStyleSheet("""
@@ -493,7 +536,9 @@ class KeyGeneratorDialog(QDialog):
                 background-color: #3498DB;
                 color: white;
                 border-radius: 5px;
-                padding: 8px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
             }
             QPushButton:hover {
                 background-color: #2980B9;
@@ -503,20 +548,66 @@ class KeyGeneratorDialog(QDialog):
         
         self.save_button = QPushButton("Guardar")
         self.save_button.setEnabled(False)
+        self.save_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2ECC71;
+                color: white;
+                border-radius: 5px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+            }
+            QPushButton:hover {
+                background-color: #27AE60;
+            }
+            QPushButton:disabled {
+                background-color: #95A5A6;
+            }
+        """)
         self.save_button.clicked.connect(self.save_key)
         
         self.encrypt_button = QPushButton("Encriptar Ahora")
         self.encrypt_button.setEnabled(False)
+        self.encrypt_button.setStyleSheet("""
+            QPushButton {
+                background-color: #E74C3C;
+                color: white;
+                border-radius: 5px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+            }
+            QPushButton:hover {
+                background-color: #C0392B;
+            }
+            QPushButton:disabled {
+                background-color: #95A5A6;
+            }
+        """)
         self.encrypt_button.clicked.connect(self.encrypt_now)
-        
-        self.close_button = QPushButton("Cerrar")
-        self.close_button.clicked.connect(self.reject)
         
         button_layout.addWidget(self.generate_button)
         button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.encrypt_button)
         layout.addLayout(button_layout)
-        layout.addWidget(self.close_button)
+        
+        # Botón para cerrar
+        self.close_button = QPushButton("Cerrar")
+        self.close_button.setStyleSheet("""
+            QPushButton {
+                background-color: #95A5A6;
+                color: white;
+                border-radius: 5px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+            }
+            QPushButton:hover {
+                background-color: #7F8C8D;
+            }
+        """)
+        self.close_button.clicked.connect(self.reject)
+        layout.addWidget(self.close_button, alignment=Qt.AlignmentFlag.AlignCenter)
         
         self.generated_key = None
     
@@ -585,10 +676,79 @@ class KeyGeneratorDialog(QDialog):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo encriptar el archivo: {str(e)}")
 
+class EncryptedFileDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Archivo Encriptado")
+        self.setFixedSize(400, 300)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #1a1a1a;
+            }
+            QLabel {
+                color: #ffffff;
+                font-size: 16px;
+            }
+            QPushButton {
+                background-color: #404040;
+                color: #ffffff;
+                border-radius: 4px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: normal;
+                min-width: 120px;
+            }
+            QPushButton:hover {
+                background-color: #666666;
+            }
+        """)
+        
+        layout = QVBoxLayout(self)
+        layout.setSpacing(20)
+        layout.setContentsMargins(30, 30, 30, 30)
+        
+        # Icono de candado
+        lock_label = QLabel("🔒")
+        lock_label.setStyleSheet("""
+            font-size: 48px;
+            color: #ffffff;
+        """)
+        lock_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(lock_label)
+        
+        # Título
+        title_label = QLabel("ARCHIVO ENCRIPTADO")
+        title_label.setStyleSheet("""
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffffff;
+            margin: 10px 0;
+        """)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title_label)
+        
+        # Mensaje
+        message_label = QLabel("Para acceder al contenido, primero debe desencriptar el archivo.")
+        message_label.setWordWrap(True)
+        message_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(message_label)
+        
+        # Botón
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        
+        ok_button = QPushButton("Entendido")
+        ok_button.clicked.connect(self.accept)
+        button_layout.addWidget(ok_button)
+        
+        button_layout.addStretch()
+        layout.addLayout(button_layout)
+
 class AdatavisionMainWindow(QMainWindow):
     def __init__(self, username):
         super().__init__()
         self.username = username
+        self.last_used_password = None  # Variable para guardar la última contraseña usada
         self.initUI()
         
         # Cargar información inicial
@@ -600,106 +760,90 @@ class AdatavisionMainWindow(QMainWindow):
         self.setWindowTitle("Adatavision - Gestor de Contraseñas")
         self.setMinimumSize(1000, 600)
         
-        # Establecer el estilo cyberpunk para la ventana principal
+        # Establecer el estilo minimalista para la ventana principal
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #0a0a0f;
+                background-color: #1a1a1a;
             }
             QWidget {
-                background-color: #0a0a0f;
-                color: #00ff9f;
-            }
-            QTabWidget::pane {
-                border: 2px solid #00ff9f;
-                border-radius: 5px;
-                background-color: #1a1a2e;
-            }
-            QTabBar::tab {
-                background-color: #1a1a2e;
-                color: #00ff9f;
-                border: 2px solid #00ff9f;
-                border-bottom: none;
-                border-top-left-radius: 5px;
-                border-top-right-radius: 5px;
-                padding: 8px 20px;
-                margin-right: 2px;
-            }
-            QTabBar::tab:selected {
-                background-color: #00ff9f;
-                color: #1a1a2e;
-            }
-            QTabBar::tab:hover {
-                background-color: #00ff9f33;
+                background-color: #1a1a1a;
+                color: #ffffff;
             }
             QPushButton {
-                background-color: #1a1a2e;
-                color: #00ff9f;
-                border: 2px solid #00ff9f;
-                border-radius: 5px;
+                background-color: #2d2d2d;
+                color: #ffffff;
+                border: 1px solid #404040;
+                border-radius: 4px;
                 padding: 8px 15px;
-                font-weight: bold;
+                font-weight: normal;
+                min-width: 150px;
+                margin: 5px;
             }
             QPushButton:hover {
-                background-color: #00ff9f;
-                color: #1a1a2e;
+                background-color: #404040;
+                color: #ffffff;
             }
             QLineEdit {
-                background-color: #1a1a2e;
-                color: #00ff9f;
-                border: 2px solid #00ff9f;
-                border-radius: 5px;
+                background-color: #2d2d2d;
+                color: #ffffff;
+                border: 1px solid #404040;
+                border-radius: 4px;
                 padding: 5px;
             }
             QLineEdit:focus {
-                border: 2px solid #ff00ff;
+                border: 1px solid #666666;
             }
             QTableWidget {
-                background-color: #1a1a2e;
-                color: #00ff9f;
-                gridline-color: #00ff9f;
-                border: 2px solid #00ff9f;
-                border-radius: 5px;
+                background-color: #2d2d2d;
+                color: #ffffff;
+                gridline-color: #404040;
+                border: 1px solid #404040;
+                border-radius: 4px;
             }
             QTableWidget::item {
                 padding: 5px;
             }
             QTableWidget::item:selected {
-                background-color: #00ff9f33;
-                color: #00ff9f;
+                background-color: #404040;
+                color: #ffffff;
+            }
+            QTableWidget::item:hover {
+                background-color: #333333;
+                cursor: pointer;
             }
             QHeaderView::section {
-                background-color: #1a1a2e;
-                color: #00ff9f;
-                border: 1px solid #00ff9f;
+                background-color: #2d2d2d;
+                color: #ffffff;
+                border: 1px solid #404040;
                 padding: 5px;
             }
             QMenuBar {
-                background-color: #1a1a2e;
-                color: #00ff9f;
+                background-color: #2d2d2d;
+                color: #ffffff;
             }
             QMenuBar::item {
-                background-color: #1a1a2e;
-                color: #00ff9f;
+                background-color: #2d2d2d;
+                color: #ffffff;
             }
             QMenuBar::item:selected {
-                background-color: #00ff9f;
-                color: #1a1a2e;
+                background-color: #404040;
+                color: #ffffff;
             }
             QMenu {
-                background-color: #1a1a2e;
-                color: #00ff9f;
-                border: 2px solid #00ff9f;
+                background-color: #2d2d2d;
+                color: #ffffff;
+                border: 1px solid #404040;
             }
             QMenu::item:selected {
-                background-color: #00ff9f;
-                color: #1a1a2e;
+                background-color: #404040;
+                color: #ffffff;
             }
             QStatusBar {
-                background-color: #1a1a2e;
-                color: #00ff9f;
+                background-color: #2d2d2d;
+                color: #ffffff;
             }
             QLabel {
-                color: #00ff9f;
+                color: #ffffff;
             }
         """)
         
@@ -708,29 +852,31 @@ class AdatavisionMainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         
         # Layout principal
-        main_layout = QVBoxLayout(central_widget)
+        main_layout = QHBoxLayout(central_widget)
         main_layout.setSpacing(10)
         main_layout.setContentsMargins(10, 10, 10, 10)
         
-        # Barra de estado con estilo cyberpunk
+        # Panel izquierdo (tabla y búsqueda)
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+        
+        # Barra de estado con estilo minimalista
         self.status_bar = self.statusBar()
         self.status_bar.setStyleSheet("""
             QStatusBar {
-                background-color: #1a1a2e;
-                color: #00ff9f;
-                border-top: 2px solid #00ff9f;
+                background-color: #2d2d2d;
+                color: #ffffff;
+                border-top: 1px solid #404040;
             }
         """)
         self.status_bar.showMessage(f"Usuario: {self.username} | Bienvenido a Adatavision")
         
-        # Área de información con estilo cyberpunk
+        # Área de información con estilo minimalista
         info_frame = QFrame()
         info_frame.setFrameShape(QFrame.Shape.StyledPanel)
         info_frame.setStyleSheet("""
             QFrame {
-                background-color: #1a1a2e;
-                border: 2px solid #00ff9f;
-                border-radius: 5px;
+                background-color: #2d2d2d;
             }
         """)
         
@@ -739,153 +885,85 @@ class AdatavisionMainWindow(QMainWindow):
         
         # Modificación
         self.modification_label = QLabel("Última modificación: Cargando...")
-        self.modification_label.setStyleSheet("color: #00ff9f; font-weight: bold;")
+        self.modification_label.setStyleSheet("color: #ffffff; font-weight: bold;")
         info_layout.addWidget(self.modification_label)
         
         # Contraseña temporal
         self.temp_password_label = QLabel("Contraseña temporal: Cargando...")
-        self.temp_password_label.setStyleSheet("color: #ff00ff; font-weight: bold;")
+        self.temp_password_label.setStyleSheet("""
+            color: #ffffff; 
+            font-weight: bold;
+            padding: 5px;
+            border: 1px solid #404040;
+            border-radius: 3px;
+        """)
+        self.temp_password_label.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.temp_password_label.mousePressEvent = self.copy_temp_password
         info_layout.addWidget(self.temp_password_label)
         
         # Estado del archivo
         self.file_status_label = QLabel("Estado del archivo: Cargando...")
-        self.file_status_label.setStyleSheet("color: #00ffff; font-weight: bold;")
+        self.file_status_label.setStyleSheet("color: #ffffff; font-weight: bold;")
         info_layout.addWidget(self.file_status_label)
         
-        main_layout.addWidget(info_frame)
-        
-        # Pestañas principales
-        self.tabs = QTabWidget()
-        
-        # Pestaña de visualización
-        self.view_tab = QWidget()
-        view_layout = QVBoxLayout(self.view_tab)
-        
-        # Tabla de datos
-        self.data_table = QTableWidget()
-        self.data_table.setColumnCount(7)
-        self.data_table.setHorizontalHeaderLabels(HEADERS)
-        self.data_table.horizontalHeader().setStretchLastSection(True)
-        view_layout.addWidget(self.data_table)
-        
-        # Botones de acción
-        action_layout = QHBoxLayout()
-        
-        self.refresh_button = QPushButton("Actualizar")
-        self.refresh_button.setIcon(QIcon.fromTheme("view-refresh"))
-        self.refresh_button.clicked.connect(self.load_inventory)
-        action_layout.addWidget(self.refresh_button)
-        
-        view_layout.addLayout(action_layout)
-        
-        # Pestaña de agregar
-        self.add_tab = QWidget()
-        add_layout = QVBoxLayout(self.add_tab)
-        
-        form_layout = QGridLayout()
-        
-        # Campos para agregar
-        service_label = QLabel("Servicio:")
-        self.service_input = QLineEdit()
-        form_layout.addWidget(service_label, 0, 0)
-        form_layout.addWidget(self.service_input, 0, 1)
-        
-        email_label = QLabel("Email:")
-        self.email_input = QLineEdit()
-        form_layout.addWidget(email_label, 1, 0)
-        form_layout.addWidget(self.email_input, 1, 1)
-        
-        password_label = QLabel("Contraseña:")
-        self.password_input = QLineEdit()
-        form_layout.addWidget(password_label, 2, 0)
-        form_layout.addWidget(self.password_input, 2, 1)
-        
-        username_label = QLabel("Usuario:")
-        self.username_input = QLineEdit()
-        form_layout.addWidget(username_label, 3, 0)
-        form_layout.addWidget(self.username_input, 3, 1)
-        
-        ref_label = QLabel("Referencia:")
-        self.ref_input = QLineEdit()
-        form_layout.addWidget(ref_label, 4, 0)
-        form_layout.addWidget(self.ref_input, 4, 1)
-        
-        add_layout.addLayout(form_layout)
-        
-        # Botón para agregar
-        self.add_button = QPushButton("Agregar")
-        self.add_button.setStyleSheet("""
-            QPushButton {
-                background-color: #2ECC71;
-                color: white;
-                border-radius: 5px;
-                padding: 10px;
-                font-size: 14px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #27AE60;
-            }
-        """)
-        self.add_button.clicked.connect(self.add_new_item)
-        add_layout.addWidget(self.add_button)
-        
-        # Pestaña de buscar
-        self.search_tab = QWidget()
-        search_layout = QVBoxLayout(self.search_tab)
+        left_layout.addWidget(info_frame)
         
         # Campo de búsqueda
-        search_input_layout = QHBoxLayout()
+        search_layout = QHBoxLayout()
         search_label = QLabel("Buscar:")
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Introduce texto para buscar...")
         self.search_button = QPushButton("Buscar")
         self.search_button.clicked.connect(self.search_items)
         
-        search_input_layout.addWidget(search_label)
-        search_input_layout.addWidget(self.search_input)
-        search_input_layout.addWidget(self.search_button)
-        search_layout.addLayout(search_input_layout)
+        search_layout.addWidget(search_label)
+        search_layout.addWidget(self.search_input)
+        search_layout.addWidget(self.search_button)
+        left_layout.addLayout(search_layout)
         
-        # Tabla de resultados
-        self.search_results = QTableWidget()
-        self.search_results.setColumnCount(7)
-        self.search_results.setHorizontalHeaderLabels(HEADERS)
-        self.search_results.horizontalHeader().setStretchLastSection(True)
-        search_layout.addWidget(self.search_results)
+        # Tabla de datos
+        self.data_table = QTableWidget()
+        self.data_table.setColumnCount(7)
+        self.data_table.setHorizontalHeaderLabels(HEADERS)
+        self.data_table.horizontalHeader().setStretchLastSection(True)
+        self.data_table.cellClicked.connect(self.copy_cell_content)
+        left_layout.addWidget(self.data_table)
         
-        # Pestaña de herramientas
-        self.tools_tab = QWidget()
-        tools_layout = QVBoxLayout(self.tools_tab)
+        # Panel derecho (botones)
+        right_panel = QWidget()
+        right_panel.setFixedWidth(200)
+        right_layout = QVBoxLayout(right_panel)
+        right_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        
+        # Botones principales
+        self.refresh_button = QPushButton("Actualizar")
+        self.refresh_button.clicked.connect(self.load_inventory)
+        right_layout.addWidget(self.refresh_button)
+        
+        self.add_button = QPushButton("Agregar")
+        self.add_button.clicked.connect(self.show_add_dialog)
+        right_layout.addWidget(self.add_button)
         
         # Botones de herramientas
         self.encrypt_button = QPushButton("Encriptar")
-        self.encrypt_button.setStyleSheet("background-color: #E74C3C; color: white; padding: 15px;")
         self.encrypt_button.clicked.connect(self.encrypt_file)
-        tools_layout.addWidget(self.encrypt_button)
+        right_layout.addWidget(self.encrypt_button)
         
         self.decrypt_button = QPushButton("Desencriptar")
-        self.decrypt_button.setStyleSheet("background-color: #2ECC71; color: white; padding: 15px;")
         self.decrypt_button.clicked.connect(self.decrypt_file)
-        tools_layout.addWidget(self.decrypt_button)
+        right_layout.addWidget(self.decrypt_button)
         
         self.generate_password_button = QPushButton("Generar Contraseñas")
-        self.generate_password_button.setStyleSheet("background-color: #3498DB; color: white; padding: 15px;")
         self.generate_password_button.clicked.connect(self.generate_passwords)
-        tools_layout.addWidget(self.generate_password_button)
+        right_layout.addWidget(self.generate_password_button)
         
         self.generate_key_button = QPushButton("Generar Claves")
-        self.generate_key_button.setStyleSheet("background-color: #9B59B6; color: white; padding: 15px;")
         self.generate_key_button.clicked.connect(self.generate_keys)
-        tools_layout.addWidget(self.generate_key_button)
+        right_layout.addWidget(self.generate_key_button)
         
-        # Agregar todas las pestañas
-        self.tabs.addTab(self.view_tab, "Ver Inventario")
-        self.tabs.addTab(self.add_tab, "Agregar")
-        self.tabs.addTab(self.search_tab, "Buscar")
-        self.tabs.addTab(self.tools_tab, "Herramientas")
-        
-        main_layout.addWidget(self.tabs)
+        # Agregar los paneles al layout principal
+        main_layout.addWidget(left_panel, stretch=7)
+        main_layout.addWidget(right_panel, stretch=1)
         
         # Barra de menú
         self.create_menu_bar()
@@ -986,8 +1064,8 @@ class AdatavisionMainWindow(QMainWindow):
             with open('estado.txt', 'r') as file:
                 status = file.read().strip()
                 if status == "encrypted":
-                    QMessageBox.warning(self, "Archivo Encriptado", 
-                                       "El archivo está encriptado. Desencríptelo primero para ver el contenido.")
+                    dialog = EncryptedFileDialog(self)
+                    dialog.exec()
                     self.data_table.setRowCount(0)
                     return
             
@@ -1000,8 +1078,8 @@ class AdatavisionMainWindow(QMainWindow):
             for i, row in enumerate(df.iter_rows(named=True)):
                 for j, col in enumerate(CSV_HEADERS):
                     item = QTableWidgetItem(str(row[col]))
-                    # Hacer que las celdas no sean editables directamente
-                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                    # Hacer que las celdas no sean editables pero sean seleccionables
+                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
                     self.data_table.setItem(i, j, item)
             
             self.data_table.resizeColumnsToContents()
@@ -1017,14 +1095,66 @@ class AdatavisionMainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo cargar el inventario: {str(e)}")
     
-    def add_new_item(self):
+    def show_add_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Agregar Nuevo Elemento")
+        dialog.setFixedSize(400, 300)
+        
+        layout = QVBoxLayout(dialog)
+        
+        form_layout = QGridLayout()
+        
+        # Campos para agregar
+        service_label = QLabel("Servicio:")
+        self.service_input = QLineEdit()
+        form_layout.addWidget(service_label, 0, 0)
+        form_layout.addWidget(self.service_input, 0, 1)
+        
+        email_label = QLabel("Email:")
+        self.email_input = QLineEdit()
+        form_layout.addWidget(email_label, 1, 0)
+        form_layout.addWidget(self.email_input, 1, 1)
+        
+        password_label = QLabel("Contraseña:")
+        self.password_input = QLineEdit()
+        form_layout.addWidget(password_label, 2, 0)
+        form_layout.addWidget(self.password_input, 2, 1)
+        
+        username_label = QLabel("Usuario:")
+        self.username_input = QLineEdit()
+        form_layout.addWidget(username_label, 3, 0)
+        form_layout.addWidget(self.username_input, 3, 1)
+        
+        ref_label = QLabel("Referencia:")
+        self.ref_input = QLineEdit()
+        form_layout.addWidget(ref_label, 4, 0)
+        form_layout.addWidget(self.ref_input, 4, 1)
+        
+        layout.addLayout(form_layout)
+        
+        # Botones
+        button_layout = QHBoxLayout()
+        
+        save_button = QPushButton("Guardar")
+        save_button.clicked.connect(lambda: self.add_new_item(dialog))
+        button_layout.addWidget(save_button)
+        
+        cancel_button = QPushButton("Cancelar")
+        cancel_button.clicked.connect(dialog.reject)
+        button_layout.addWidget(cancel_button)
+        
+        layout.addLayout(button_layout)
+        
+        dialog.exec()
+    
+    def add_new_item(self, dialog=None):
         # Verificar si el archivo está encriptado
         try:
             with open('estado.txt', 'r') as file:
                 status = file.read().strip()
                 if status == "encrypted":
-                    QMessageBox.warning(self, "Archivo Encriptado", 
-                                      "El archivo está encriptado. Desencríptelo primero para agregar elementos.")
+                    encrypted_dialog = EncryptedFileDialog(self)
+                    encrypted_dialog.exec()
                     return
         except FileNotFoundError:
             with open('estado.txt', 'w') as file:
@@ -1082,6 +1212,9 @@ class AdatavisionMainWindow(QMainWindow):
             self.load_last_modified()
             
             QMessageBox.information(self, "Éxito", "Elemento agregado correctamente")
+            
+            if dialog:
+                dialog.accept()
         
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo agregar el elemento: {str(e)}")
@@ -1092,9 +1225,9 @@ class AdatavisionMainWindow(QMainWindow):
             with open('estado.txt', 'r') as file:
                 status = file.read().strip()
                 if status == "encrypted":
-                    QMessageBox.warning(self, "Archivo Encriptado", 
-                                      "El archivo está encriptado. Desencríptelo primero para buscar.")
-                    self.search_results.setRowCount(0)
+                    encrypted_dialog = EncryptedFileDialog(self)
+                    encrypted_dialog.exec()
+                    self.data_table.setRowCount(0)
                     return
         except FileNotFoundError:
             with open('estado.txt', 'w') as file:
@@ -1120,16 +1253,16 @@ class AdatavisionMainWindow(QMainWindow):
             )
             
             # Mostrar resultados
-            self.search_results.setRowCount(len(filtered_df))
+            self.data_table.setRowCount(len(filtered_df))
             
             for i, row in enumerate(filtered_df.iter_rows(named=True)):
                 for j, col in enumerate(CSV_HEADERS):
                     item = QTableWidgetItem(str(row[col]))
-                    # Hacer que las celdas no sean editables directamente
-                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                    self.search_results.setItem(i, j, item)
+                    # Hacer que las celdas no sean editables pero sean seleccionables
+                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                    self.data_table.setItem(i, j, item)
             
-            self.search_results.resizeColumnsToContents()
+            self.data_table.resizeColumnsToContents()
             
             self.status_bar.showMessage(f"Se encontraron {len(filtered_df)} resultados", 3000)
         
@@ -1201,6 +1334,9 @@ class AdatavisionMainWindow(QMainWindow):
         if dialog.exec():
             password = dialog.password
             
+            # Guardar la contraseña para uso posterior
+            self.last_used_password = password
+            
             # Generar clave a partir del usuario y contraseña
             clave_base = self.username + password
             clave_hash = hashlib.sha256(clave_base.encode()).digest()
@@ -1248,21 +1384,67 @@ class AdatavisionMainWindow(QMainWindow):
         QMessageBox.about(self, "Acerca de Adatavision", about_text)
     
     def closeEvent(self, event):
-        # Verificar si el archivo está desencriptado
         try:
+            # Verificar el estado actual del archivo
             with open('estado.txt', 'r') as file:
-                status = file.read().strip()
-                if status == "decrypted":
-                    reply = QMessageBox.question(self, "Archivo Desencriptado", 
-                                              "El archivo está desencriptado. ¿Desea encriptarlo antes de salir?",
-                                              QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, 
-                                              QMessageBox.StandardButton.Yes)
-                    if reply == QMessageBox.StandardButton.Yes:
-                        self.encrypt_file()
+                current_status = file.read().strip()
+            
+            # Si está desencriptado y tenemos las credenciales, intentar encriptar
+            if current_status == "decrypted" and self.last_used_password is not None:
+                # Generar clave de encriptación con las credenciales guardadas
+                clave_base = self.username + self.last_used_password
+                clave_hash = hashlib.sha256(clave_base.encode()).digest()
+                clave_final = base64.urlsafe_b64encode(clave_hash[:32])
+                
+                try:
+                    # Encriptar el archivo
+                    with open('Inventario.csv', 'rb') as archivo:
+                        datos = archivo.read()
+                        f = Fernet(clave_final)
+                        datos_cifrados = f.encrypt(datos)
+                    
+                    with open('Inventario.csv', 'wb') as encrypted_file:
+                        encrypted_file.write(datos_cifrados)
+                    
+                    # Actualizar el estado
+                    with open('estado.txt', 'w') as archivo_estado:
+                        archivo_estado.write("encrypted")
+                    
+                    QMessageBox.information(self, "Éxito", "Archivo encriptado automáticamente al cerrar")
+                except Exception as e:
+                    QMessageBox.warning(self, "Error", 
+                                      f"No se pudo encriptar el archivo automáticamente: {str(e)}")
+            elif current_status == "decrypted":
+                QMessageBox.warning(self, "Advertencia", 
+                                  "El archivo está desencriptado pero no hay credenciales guardadas para encriptar automáticamente")
+            elif current_status != "encrypted":
+                QMessageBox.warning(self, "Inconsistencia", 
+                                  "El estado del archivo es inconsistente. Por favor, verifique manualmente.")
+        
         except FileNotFoundError:
-            pass
+            QMessageBox.warning(self, "Advertencia", 
+                              "No se pudo verificar el estado del archivo")
         
         event.accept()
+
+    def copy_temp_password(self, event):
+        try:
+            with open('temp.txt', 'r') as file:
+                temp_password = file.read().strip()
+                if temp_password != "No hay contraseña temporal":
+                    QApplication.clipboard().setText(temp_password)
+                    self.status_bar.showMessage("Contraseña temporal copiada al portapapeles", 2000)
+                else:
+                    self.status_bar.showMessage("No hay contraseña temporal para copiar", 2000)
+        except FileNotFoundError:
+            self.status_bar.showMessage("No hay contraseña temporal para copiar", 2000)
+
+    def copy_cell_content(self, row, column):
+        item = self.data_table.item(row, column)
+        if item is not None:
+            content = item.text()
+            QApplication.clipboard().setText(content)
+            self.status_bar.showMessage(f"Contenido copiado: {content}", 2000)
 
 def main():
     app = QApplication(sys.argv)
