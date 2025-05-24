@@ -6,8 +6,8 @@
 
 AdataVision es un gestor de contraseñas con interfaz gráfica moderna, diseñado para almacenar y gestionar credenciales de forma segura utilizando cifrado Fernet (AES-128 en modo CBC).
 ## Capturas
-![Captura de pantalla](cap1.png)
-![Captura de pantalla2](cap2.png)
+![Captura de pantalla](cap1.webp)
+![Captura de pantalla2](cap2.webp)
 
 ##  Funcionalidades
 
