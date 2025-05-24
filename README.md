@@ -1,4 +1,4 @@
-# 🔒 AdataVision - Gestor Seguro de Contraseñas
+#  AdataVision - Gestor Seguro de Contraseñas
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue?logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -6,25 +6,18 @@
 
 AdataVision es un gestor de contraseñas con interfaz gráfica moderna, diseñado para almacenar y gestionar credenciales de forma segura utilizando cifrado Fernet (AES-128 en modo CBC).
 
-## 🌟 Características Principales
 
-| 🔐 Seguridad | 🛠 Funcionalidad | 💡 Usabilidad |
-|-------------|----------------|-------------|
-| Cifrado Fernet | Gestión de CSV | Interfaz gráfica moderna |
-| Autenticación por usuario | Encriptación/Desencriptación | Diseño minimalista |
-| Protección de datos | Generador de contraseñas | Feedback visual |
+##  Funcionalidades
 
-## ✨ Funcionalidades
+-  **Sistema de Login**: Autenticación mediante usuario personal
+-  **Encriptación**: Protección de datos mediante cifrado Fernet
+-  **Gestión de Contraseñas**: Almacenamiento seguro de credenciales
+-  **Generador de Contraseñas**: Creación de contraseñas seguras
+-  **Búsqueda Avanzada**: Filtrado rápido de credenciales
+-  **Portapapeles**: Copia rápida de contraseñas
+-  **Auto-encriptación**: Protección automática al cerrar
 
-- 🔐 **Sistema de Login**: Autenticación mediante usuario personal
-- 🔒 **Encriptación**: Protección de datos mediante cifrado Fernet
-- 📝 **Gestión de Contraseñas**: Almacenamiento seguro de credenciales
-- 🔑 **Generador de Contraseñas**: Creación de contraseñas seguras
-- 🔍 **Búsqueda Avanzada**: Filtrado rápido de credenciales
-- 📋 **Portapapeles**: Copia rápida de contraseñas
-- 🔄 **Auto-encriptación**: Protección automática al cerrar
-
-## 🚀 Instalación
+##  Instalación
 
 ```bash
 # Clonar repositorio
@@ -38,18 +31,12 @@ pip install -r requirements.txt
 python3 Adatavision.py
 ```
 
-## 📋 Requisitos
+##  Requisitos
 
 - Python 3.8 o superior
 - PySide6
 - cryptography
 - polars
-
-## 🔧 Configuración
-
-1. Ejecuta la aplicación
-2. Ingresa tu nombre de usuario (máximo 6 letras)
-3. ¡Listo para usar!
 
 ## 📝 Notas
 
