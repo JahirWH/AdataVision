@@ -747,6 +747,114 @@ class EncryptedFileDialog(QDialog):
         button_layout.addStretch()
         layout.addLayout(button_layout)
 
+class ModifyDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Modificar Elemento")
+        self.setFixedSize(400, 400)
+        
+        layout = QVBoxLayout(self)
+        
+        # Campo para el código
+        code_layout = QHBoxLayout()
+        code_label = QLabel("Código:")
+        self.code_input = QLineEdit()
+        self.code_input.setPlaceholderText("Ingrese el código del elemento")
+        code_layout.addWidget(code_label)
+        code_layout.addWidget(self.code_input)
+        layout.addLayout(code_layout)
+        
+        # Botón para buscar
+        search_button = QPushButton("Buscar")
+        search_button.clicked.connect(self.search_item)
+        layout.addWidget(search_button)
+        
+        # Campos para modificar
+        form_layout = QGridLayout()
+        
+        service_label = QLabel("Servicio:")
+        self.service_input = QLineEdit()
+        form_layout.addWidget(service_label, 0, 0)
+        form_layout.addWidget(self.service_input, 0, 1)
+        
+        email_label = QLabel("Email:")
+        self.email_input = QLineEdit()
+        form_layout.addWidget(email_label, 1, 0)
+        form_layout.addWidget(self.email_input, 1, 1)
+        
+        password_label = QLabel("Contraseña:")
+        self.password_input = QLineEdit()
+        form_layout.addWidget(password_label, 2, 0)
+        form_layout.addWidget(self.password_input, 2, 1)
+        
+        username_label = QLabel("Usuario:")
+        self.username_input = QLineEdit()
+        form_layout.addWidget(username_label, 3, 0)
+        form_layout.addWidget(self.username_input, 3, 1)
+        
+        ref_label = QLabel("Referencia:")
+        self.ref_input = QLineEdit()
+        form_layout.addWidget(ref_label, 4, 0)
+        form_layout.addWidget(self.ref_input, 4, 1)
+        
+        layout.addLayout(form_layout)
+        
+        # Botones
+        button_layout = QHBoxLayout()
+        
+        save_button = QPushButton("Guardar")
+        save_button.setObjectName("Guardar")
+        save_button.clicked.connect(self.accept)
+        button_layout.addWidget(save_button)
+        
+        cancel_button = QPushButton("Cancelar")
+        cancel_button.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_button)
+        
+        layout.addLayout(button_layout)
+        
+        # Deshabilitar campos hasta que se busque un elemento
+        self.service_input.setEnabled(False)
+        self.email_input.setEnabled(False)
+        self.password_input.setEnabled(False)
+        self.username_input.setEnabled(False)
+        self.ref_input.setEnabled(False)
+        save_button.setEnabled(False)
+    
+    def search_item(self):
+        code = self.code_input.text().strip()
+        if not code:
+            QMessageBox.warning(self, "Error", "Ingrese un código para buscar")
+            return
+        
+        try:
+            with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    if row['codigo'] == code:
+                        # Habilitar campos
+                        self.service_input.setEnabled(True)
+                        self.email_input.setEnabled(True)
+                        self.password_input.setEnabled(True)
+                        self.username_input.setEnabled(True)
+                        self.ref_input.setEnabled(True)
+                        self.findChild(QPushButton, "Guardar").setEnabled(True)
+                        
+                        # Llenar campos
+                        self.service_input.setText(row['service'])
+                        self.email_input.setText(row['email'])
+                        self.password_input.setText(row['password'])
+                        self.username_input.setText(row['username'])
+                        self.ref_input.setText(row['web'])
+                        return
+            
+            QMessageBox.warning(self, "Error", "No se encontró ningún elemento con ese código")
+        
+        except FileNotFoundError:
+            QMessageBox.warning(self, "Error", "No se encontró el archivo de inventario")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al buscar el elemento: {str(e)}")
+
 class AdatavisionMainWindow(QMainWindow):
     def __init__(self, username):
         super().__init__()
@@ -946,6 +1054,10 @@ class AdatavisionMainWindow(QMainWindow):
         self.add_button = QPushButton("Agregar")
         self.add_button.clicked.connect(self.show_add_dialog)
         right_layout.addWidget(self.add_button)
+        
+        self.modify_button = QPushButton("Modificar")
+        self.modify_button.clicked.connect(self.show_modify_dialog)
+        right_layout.addWidget(self.modify_button)
         
         # Botones de herramientas
         self.encrypt_button = QPushButton("Encriptar")
@@ -1370,6 +1482,70 @@ class AdatavisionMainWindow(QMainWindow):
         dialog = KeyGeneratorDialog(self)
         dialog.exec()
         self.check_file_status()
+    
+    def show_modify_dialog(self):
+        # Verificar si el archivo está encriptado
+        try:
+            with open(resource_path('estado.txt'), 'r') as file:
+                status = file.read().strip()
+                if status == "encrypted":
+                    encrypted_dialog = EncryptedFileDialog(self)
+                    encrypted_dialog.exec()
+                    return
+        except FileNotFoundError:
+            with open(resource_path('estado.txt'), 'w') as file:
+                file.write("decrypted")
+        
+        dialog = ModifyDialog(self)
+        if dialog.exec():
+            # Obtener valores de los campos
+            code = dialog.code_input.text().strip()
+            service = dialog.service_input.text().strip()
+            email = dialog.email_input.text().strip()
+            password = dialog.password_input.text().strip()
+            username = dialog.username_input.text().strip()
+            reference = dialog.ref_input.text().strip()
+            
+            # Validar que no estén vacíos
+            if not all([service, email, password, username, reference]):
+                QMessageBox.warning(self, "Campos Vacíos", "Todos los campos son obligatorios")
+                return
+            
+            try:
+                # Leer todo el archivo
+                rows = []
+                with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+                    reader = csv.DictReader(file)
+                    for row in reader:
+                        if row['codigo'] == code:
+                            # Actualizar la fila encontrada
+                            row['service'] = service
+                            row['email'] = email
+                            row['password'] = password
+                            row['username'] = username
+                            row['web'] = reference
+                            row['fecha'] = str(date.today())
+                        rows.append(row)
+                
+                # Escribir todo el archivo de nuevo
+                with open(resource_path('Inventario.csv'), 'w', newline='') as file:
+                    writer = csv.DictWriter(file, fieldnames=CSV_HEADERS)
+                    writer.writeheader()
+                    writer.writerows(rows)
+                
+                # Actualizar la fecha de modificación
+                with open(resource_path('date.txt'), 'w') as file:
+                    now = str(datetime.now())
+                    file.write(now)
+                
+                # Recargar inventario
+                self.load_inventory()
+                self.load_last_modified()
+                
+                QMessageBox.information(self, "Éxito", "Elemento modificado correctamente")
+            
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"No se pudo modificar el elemento: {str(e)}")
     
     def show_about(self):
         about_text = """
