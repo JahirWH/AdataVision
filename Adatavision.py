@@ -18,9 +18,9 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                               QTableWidget, QTableWidgetItem, QMessageBox, 
                               QTabWidget, QGridLayout, QComboBox, QDialog,
                               QFileDialog, QProgressBar, QFrame, QStackedWidget,
-                              QScrollArea, QSplashScreen)
+                              QScrollArea, QSplashScreen, QToolBar, QStatusBar)
 from PySide6.QtCore import Qt, QTimer, Signal, Slot, QSize, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QFont, QPixmap, QColor, QPalette, QIcon, QKeySequence
+from PySide6.QtGui import QFont, QPixmap, QColor, QPalette, QIcon, QKeySequence, QAction
 from cryptography.fernet import Fernet
 
 
@@ -29,6 +29,106 @@ from cryptography.fernet import Fernet
 TODAY = str(date.today())
 HEADERS = ['Código', 'Servicio', 'Email', 'Password', 'Usuario', 'Referencia', 'Fecha']
 CSV_HEADERS = ['codigo', 'service', 'email', 'password', 'username', 'web', 'fecha']
+
+class ThemeManager:
+    def __init__(self):
+        self.current_theme = "dark"
+        self.themes = {
+            "dark": {
+                "main_bg": "background-image: url(cyberpunk.png); background-position: center; background-repeat: no-repeat;",
+                "widget_bg": "background-color: rgba(26, 26, 26, 0.9);",
+                "button_bg": "background-color: #2d2d2d;",
+                "button_hover": "background-color: #404040;",
+                "text_color": "color: #ffffff;",
+                "border_color": "border: 1px solid #404040;",
+                "accent_color": "#0EFF9B"
+            },
+            "light": {
+                "main_bg": "background-color: #f0f0f0;",
+                "widget_bg": "background-color: rgba(255, 255, 255, 0.9);",
+                "button_bg": "background-color: #e0e0e0;",
+                "button_hover": "background-color: #d0d0d0;",
+                "text_color": "color: #000000;",
+                "border_color": "border: 1px solid #cccccc;",
+                "accent_color": "#007bff"
+            }
+        }
+    
+    def get_theme_style(self):
+        theme = self.themes[self.current_theme]
+        return f"""
+            QMainWindow {{
+                {theme['main_bg']}
+            }}
+            QWidget {{
+                {theme['widget_bg']}
+                {theme['text_color']}
+            }}
+            QPushButton {{
+                {theme['button_bg']}
+                {theme['text_color']}
+                {theme['border_color']}
+                border-radius: 4px;
+                padding: 8px 15px;
+                font-weight: normal;
+                min-width: 150px;
+                margin: 5px;
+            }}
+            QPushButton:hover {{
+                {theme['button_hover']}
+            }}
+            QLineEdit {{
+                {theme['widget_bg']}
+                {theme['text_color']}
+                {theme['border_color']}
+                border-radius: 4px;
+                padding: 5px;
+            }}
+            QTableWidget {{
+                {theme['widget_bg']}
+                {theme['text_color']}
+                gridline-color: #404040;
+                {theme['border_color']}
+                border-radius: 4px;
+            }}
+            QTableWidget::item {{
+                padding: 5px;
+            }}
+            QTableWidget::item:selected {{
+                background-color: {theme['accent_color']};
+                {theme['text_color']}
+            }}
+            QHeaderView::section {{
+                {theme['widget_bg']}
+                {theme['text_color']}
+                {theme['border_color']}
+                padding: 5px;
+            }}
+            QMenuBar {{
+                {theme['widget_bg']}
+                {theme['text_color']}
+            }}
+            QMenu {{
+                {theme['widget_bg']}
+                {theme['text_color']}
+                {theme['border_color']}
+            }}
+            QStatusBar {{
+                {theme['widget_bg']}
+                {theme['text_color']}
+            }}
+            QLabel {{
+                {theme['text_color']}
+            }}
+            QFrame {{
+                {theme['widget_bg']}
+                border-radius: 4px;
+            }}
+        """
+    
+    def toggle_theme(self):
+        self.current_theme = "light" if self.current_theme == "dark" else "dark"
+        return self.get_theme_style()
 
 class SplashScreen(QSplashScreen):
     def __init__(self):
@@ -51,7 +151,7 @@ class LoginDialog(QDialog):
         left_panel = QWidget()
         left_panel.setStyleSheet("""
             QWidget {
-                background-color: #2d2d2d;
+                background-color: rgba(45, 45, 45, 0);
                 border-radius: 4px;
             }
         """)
@@ -62,9 +162,10 @@ class LoginDialog(QDialog):
         # Título del formulario
         form_title = QLabel("Usuario login")
         form_title.setStyleSheet("""
-            font-size: 18px;
+            font-size: 22px;
             font-weight: bold;
-            color: #ffffff;
+            color:#0EFF9B;
+                         
         """)
         form_title.setAlignment(Qt.AlignmentFlag.AlignLeft)
         left_layout.addWidget(form_title)
@@ -79,7 +180,7 @@ class LoginDialog(QDialog):
                 border-radius: 4px;
                 padding: 8px;
                 font-size: 14px;
-                background-color: #1a1a1a;
+                background-color: rgba(26, 26, 26, 0.9);
                 color: #ffffff;
             }
             QLineEdit:focus {
@@ -132,7 +233,7 @@ class LoginDialog(QDialog):
         right_panel = QWidget()
         right_panel.setStyleSheet("""
             QWidget {
-                background-color: #2d2d2d;
+                background-color: rgba(45, 45, 45, 0.3);
                 border-radius: 4px;
             }
         """)
@@ -141,8 +242,8 @@ class LoginDialog(QDialog):
         
         # Título y descripción en un solo párrafo
         description_text = """
-        <p style='color: white; font-size: 14px; margin: 0;'>
-        <b>ADATAVISION</b><br>
+        <p style='color: white; font-size: 14px; margin: 0; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;'>
+        <b style='color: #0EFF9B;'>ADATAVISION</b><br>
         Sistema de encriptación que combina usuario y contraseña para crear una clave única. 
         Los datos se encriptan automáticamente y solo podrán ser desencriptados con las credenciales originales.
         </p>
@@ -155,7 +256,7 @@ class LoginDialog(QDialog):
         
         # Agregar imagen
         image_label = QLabel()
-        pixmap = QPixmap(resource_path("cyberpunk.png"))
+        pixmap = QPixmap(resource_path("taurs.png"))
         scaled_pixmap = pixmap.scaled(200, 140, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         image_label.setPixmap(scaled_pixmap)
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -166,6 +267,16 @@ class LoginDialog(QDialog):
         
         # Establecer tamaño fijo
         self.setFixedSize(700, 400)
+        
+        # Establecer imagen de fondo
+        self.setStyleSheet("""
+            QDialog {
+                background-image: url(cybepunk.jpg);
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: cover;
+            }
+        """)
     
     def accept_login(self):
         username = self.user_input.text()
@@ -299,7 +410,8 @@ class PasswordGeneratorDialog(QDialog):
             QComboBox {
                 padding: 8px;
                 font-size: 14px;
-                min-width: 200px;
+                min-width: 100px;
+                height:20px;
             }
         """)
         options_layout.addWidget(QLabel("Minúsculas:"), 0, 0)
@@ -859,104 +971,27 @@ class AdatavisionMainWindow(QMainWindow):
     def __init__(self, username):
         super().__init__()
         self.username = username
-        self.last_used_password = None  # Variable para guardar la última contraseña usada
+        self.last_used_password = None
+        self.theme_manager = ThemeManager()
         self.initUI()
         
         # Cargar información inicial
         self.load_last_modified()
         self.load_temp_password()
         self.check_file_status()
+        
+        # Configurar el temporizador de inactividad
+        self.inactivity_timer = QTimer(self)
+        self.inactivity_timer.timeout.connect(self.check_inactivity)
+        self.inactivity_timer.start(300000)  # 5 minutos
+        self.last_activity = datetime.now()
     
     def initUI(self):
         self.setWindowTitle("Adatavision - Gestor de Contraseñas")
         self.setMinimumSize(1000, 600)
         
-        # Establecer el estilo minimalista para la ventana principal
-        self.setStyleSheet("""
-            QMainWindow {
-                background-color: #1a1a1a;
-            }
-            QWidget {
-                background-color: #1a1a1a;
-                color: #ffffff;
-            }
-            QPushButton {
-                background-color: #2d2d2d;
-                color: #ffffff;
-                border: 1px solid #404040;
-                border-radius: 4px;
-                padding: 8px 15px;
-                font-weight: normal;
-                min-width: 150px;
-                margin: 5px;
-            }
-            QPushButton:hover {
-                background-color: #404040;
-                color: #ffffff;
-            }
-            QLineEdit {
-                background-color: #2d2d2d;
-                color: #ffffff;
-                border: 1px solid #404040;
-                border-radius: 4px;
-                padding: 5px;
-            }
-            QLineEdit:focus {
-                border: 1px solid #666666;
-            }
-            QTableWidget {
-                background-color: #2d2d2d;
-                color: #ffffff;
-                gridline-color: #404040;
-                border: 1px solid #404040;
-                border-radius: 4px;
-            }
-            QTableWidget::item {
-                padding: 5px;
-            }
-            QTableWidget::item:selected {
-                background-color: #404040;
-                color: #ffffff;
-            }
-            QTableWidget::item:hover {
-                background-color: #333333;
-                cursor: pointer;
-            }
-            QHeaderView::section {
-                background-color: #2d2d2d;
-                color: #ffffff;
-                border: 1px solid #404040;
-                padding: 5px;
-            }
-            QMenuBar {
-                background-color: #2d2d2d;
-                color: #ffffff;
-            }
-            QMenuBar::item {
-                background-color: #2d2d2d;
-                color: #ffffff;
-            }
-            QMenuBar::item:selected {
-                background-color: #404040;
-                color: #ffffff;
-            }
-            QMenu {
-                background-color: #2d2d2d;
-                color: #ffffff;
-                border: 1px solid #404040;
-            }
-            QMenu::item:selected {
-                background-color: #404040;
-                color: #ffffff;
-            }
-            QStatusBar {
-                background-color: #2d2d2d;
-                color: #ffffff;
-            }
-            QLabel {
-                color: #ffffff;
-            }
-        """)
+        # Aplicar el tema
+        self.setStyleSheet(self.theme_manager.get_theme_style())
         
         # Widget central
         central_widget = QWidget()
@@ -971,38 +1006,44 @@ class AdatavisionMainWindow(QMainWindow):
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
         
+        # Barra de herramientas
+        toolbar = QToolBar()
+        self.addToolBar(toolbar)
+        
+        # Acción para cambiar tema
+        theme_action = QAction("Cambiar Tema", self)
+        theme_action.triggered.connect(self.toggle_theme)
+        toolbar.addAction(theme_action)
+        
+        # Acción para exportar
+        export_action = QAction("Exportar", self)
+        export_action.triggered.connect(self.export_data)
+        toolbar.addAction(export_action)
+        
+        # Acción para importar
+        import_action = QAction("Importar", self)
+        import_action.triggered.connect(self.import_data)
+        toolbar.addAction(import_action)
+        
         # Barra de estado con estilo minimalista
         self.status_bar = self.statusBar()
-        self.status_bar.setStyleSheet("""
-            QStatusBar {
-                background-color: #2d2d2d;
-                color: #ffffff;
-                border-top: 1px solid #404040;
-            }
-        """)
         self.status_bar.showMessage(f"Usuario: {self.username} | Bienvenido a Adatavision")
         
         # Área de información con estilo minimalista
         info_frame = QFrame()
         info_frame.setFrameShape(QFrame.Shape.StyledPanel)
-        info_frame.setStyleSheet("""
-            QFrame {
-                background-color: #2d2d2d;
-            }
-        """)
         
         info_layout = QHBoxLayout(info_frame)
         info_layout.setSpacing(20)
         
         # Modificación
         self.modification_label = QLabel("Última modificación: Cargando...")
-        self.modification_label.setStyleSheet("color: #ffffff; font-weight: bold;")
+        self.modification_label.setStyleSheet("font-weight: bold;")
         info_layout.addWidget(self.modification_label)
         
         # Contraseña temporal
         self.temp_password_label = QLabel("Contraseña temporal: Cargando...")
         self.temp_password_label.setStyleSheet("""
-            color: #ffffff; 
             font-weight: bold;
             padding: 5px;
             border: 1px solid #404040;
@@ -1014,21 +1055,26 @@ class AdatavisionMainWindow(QMainWindow):
         
         # Estado del archivo
         self.file_status_label = QLabel("Estado del archivo: Cargando...")
-        self.file_status_label.setStyleSheet("color: #ffffff; font-weight: bold;")
+        self.file_status_label.setStyleSheet("font-weight: bold;")
         info_layout.addWidget(self.file_status_label)
         
         left_layout.addWidget(info_frame)
         
-        # Campo de búsqueda
+        # Campo de búsqueda con filtros
         search_layout = QHBoxLayout()
         search_label = QLabel("Buscar:")
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Introduce texto para buscar...")
+        
+        self.search_filter = QComboBox()
+        self.search_filter.addItems(["Todos", "Servicio", "Email", "Usuario", "Referencia"])
+        
         self.search_button = QPushButton("Buscar")
         self.search_button.clicked.connect(self.search_items)
         
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.search_input)
+        search_layout.addWidget(self.search_filter)
         search_layout.addWidget(self.search_button)
         left_layout.addLayout(search_layout)
         
@@ -1086,6 +1132,99 @@ class AdatavisionMainWindow(QMainWindow):
         # Accesos rápidos de teclado
         self.setup_shortcuts()
     
+    def toggle_theme(self):
+        self.setStyleSheet(self.theme_manager.toggle_theme())
+    
+    def check_inactivity(self):
+        current_time = datetime.now()
+        time_diff = (current_time - self.last_activity).total_seconds()
+        if time_diff > 300:  # 5 minutos
+            reply = QMessageBox.question(self, 'Sesión Inactiva',
+                                       '¿Desea mantener la sesión activa?',
+                                       QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.No:
+                self.close()
+            else:
+                self.last_activity = current_time
+    
+    def event(self, event):
+        # Actualizar el tiempo de última actividad
+        if event.type() in [event.Type.MouseButtonPress, event.Type.KeyPress]:
+            self.last_activity = datetime.now()
+        return super().event(event)
+    
+    def export_data(self):
+        try:
+            file_name, _ = QFileDialog.getSaveFileName(self, "Exportar Datos", "", "CSV Files (*.csv);;JSON Files (*.json)")
+            if file_name:
+                if file_name.endswith('.csv'):
+                    self.export_to_csv(file_name)
+                elif file_name.endswith('.json'):
+                    self.export_to_json(file_name)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al exportar datos: {str(e)}")
+    
+    def export_to_csv(self, file_name):
+        try:
+            with open(resource_path('Inventario.csv'), 'r', newline='') as source_file:
+                with open(file_name, 'w', newline='') as target_file:
+                    target_file.write(source_file.read())
+            QMessageBox.information(self, "Éxito", "Datos exportados correctamente")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al exportar a CSV: {str(e)}")
+    
+    def export_to_json(self, file_name):
+        try:
+            import json
+            data = []
+            with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    data.append(row)
+            
+            with open(file_name, 'w') as json_file:
+                json.dump(data, json_file, indent=4)
+            QMessageBox.information(self, "Éxito", "Datos exportados correctamente")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al exportar a JSON: {str(e)}")
+    
+    def import_data(self):
+        try:
+            file_name, _ = QFileDialog.getOpenFileName(self, "Importar Datos", "", "CSV Files (*.csv);;JSON Files (*.json)")
+            if file_name:
+                if file_name.endswith('.csv'):
+                    self.import_from_csv(file_name)
+                elif file_name.endswith('.json'):
+                    self.import_from_json(file_name)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al importar datos: {str(e)}")
+    
+    def import_from_csv(self, file_name):
+        try:
+            with open(file_name, 'r', newline='') as source_file:
+                with open(resource_path('Inventario.csv'), 'w', newline='') as target_file:
+                    target_file.write(source_file.read())
+            self.load_inventory()
+            QMessageBox.information(self, "Éxito", "Datos importados correctamente")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al importar desde CSV: {str(e)}")
+    
+    def import_from_json(self, file_name):
+        try:
+            import json
+            with open(file_name, 'r') as json_file:
+                data = json.load(json_file)
+            
+            with open(resource_path('Inventario.csv'), 'w', newline='') as csv_file:
+                writer = csv.DictWriter(csv_file, fieldnames=CSV_HEADERS)
+                writer.writeheader()
+                writer.writerows(data)
+            
+            self.load_inventory()
+            QMessageBox.information(self, "Éxito", "Datos importados correctamente")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al importar desde JSON: {str(e)}")
+    
     def create_menu_bar(self):
         menubar = self.menuBar()
         
@@ -1138,22 +1277,30 @@ class AdatavisionMainWindow(QMainWindow):
         try:
             with open(resource_path('date.txt'), 'r') as file:
                 last_modified = file.read()
-                self.modification_label.setText(f"Última modificación: {last_modified}")
+                # Convertir la fecha a datetime y formatearla
+                try:
+                    date_obj = datetime.strptime(last_modified, "%Y-%m-%d")
+                    formatted_date = date_obj.strftime("%Y-%m-%d")
+                    self.modification_label.setText(f"Última modificación: {formatted_date}")
+                except ValueError:
+                    # Si hay un error al parsear la fecha, mostrar la fecha original
+                    self.modification_label.setText(f"Última modificación: {last_modified}")
         except FileNotFoundError:
             with open(resource_path('date.txt'), 'w') as file:
-                now = str(datetime.now())
+                now = datetime.now().strftime("%Y-%m-%d")
                 file.write(now)
                 self.modification_label.setText(f"Última modificación: {now}")
+                
     
     def load_temp_password(self):
         try:
             with open(resource_path('temp.txt'), 'r') as file:
                 temp_password = file.read()
-                self.temp_password_label.setText(f"Contraseña temporal: {temp_password}")
+                self.temp_password_label.setText(f"temp: {temp_password}")
         except FileNotFoundError:
             with open(resource_path('temp.txt'), 'w') as file:
                 file.write("No hay contraseña temporal")
-                self.temp_password_label.setText("Contraseña temporal: No hay contraseña temporal")
+                self.temp_password_label.setText(" No hay contraseña temporal")
     
     def check_file_status(self):
         try:
@@ -1313,7 +1460,7 @@ class AdatavisionMainWindow(QMainWindow):
             
             # Actualizar la fecha de modificación
             with open(resource_path('date.txt'), 'w') as file:
-                now = str(datetime.now())
+                now = datetime.now().strftime("%Y-%m-%d")
                 file.write(now)
             
             # Limpiar campos
@@ -1535,7 +1682,7 @@ class AdatavisionMainWindow(QMainWindow):
                 
                 # Actualizar la fecha de modificación
                 with open(resource_path('date.txt'), 'w') as file:
-                    now = str(datetime.now())
+                    now = datetime.now().strftime("%Y-%m-%d")
                     file.write(now)
                 
                 # Recargar inventario
