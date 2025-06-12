@@ -35,12 +35,12 @@ class ThemeManager:
         self.current_theme = "dark"
         self.themes = {
             "dark": {
-                "main_bg": "background-image: url(cyberpunk.png); background-position: center; background-repeat: no-repeat;",
-                "widget_bg": "background-color: rgba(26, 26, 26, 0.9);",
-                "button_bg": "background-color: #2d2d2d;",
-                "button_hover": "background-color: #404040;",
+                "main_bg": "background: url(background.jpg) center center/cover no-repeat fixed;",
+                "widget_bg": "background-color: rgba(26, 26, 26, 0.48);",
+                "button_bg": "background-color: rgba(45, 45, 45, 0.53);",
+                "button_hover": "background-color: rgba(64, 64, 64, 0.9);",
                 "text_color": "color: #ffffff;",
-                "border_color": "border: 1px solid #404040;",
+                "border_color": "border: 1px solid rgba(64, 64, 64, 0.9);",
                 "accent_color": "#0EFF9B"
             },
             "light": {
@@ -87,7 +87,7 @@ class ThemeManager:
             QTableWidget {{
                 {theme['widget_bg']}
                 {theme['text_color']}
-                gridline-color: #404040;
+                gridline-color: rgba(64, 64, 64, 0.9);
                 {theme['border_color']}
                 border-radius: 4px;
             }}
@@ -123,6 +123,10 @@ class ThemeManager:
             QFrame {{
                 {theme['widget_bg']}
                 border-radius: 4px;
+            }}
+            QToolBar {{
+                {theme['widget_bg']}
+                border: none;
             }}
         """
     
@@ -196,7 +200,7 @@ class LoginDialog(QDialog):
         self.login_button = QPushButton("Ingresar")
         self.login_button.setStyleSheet("""
             QPushButton {
-                background-color: #404040;
+                background-color:rgba(47, 115, 179, 0.71);
                 color: #ffffff;
                 border-radius: 4px;
                 padding: 8px;
@@ -204,7 +208,7 @@ class LoginDialog(QDialog):
                 min-width: 120px;
             }
             QPushButton:hover {
-                background-color: #666666;
+                background-color:rgba(17, 17, 17, 0.84);
             }
         """)
         self.login_button.clicked.connect(self.accept_login)
@@ -271,7 +275,7 @@ class LoginDialog(QDialog):
         # Establecer imagen de fondo
         self.setStyleSheet("""
             QDialog {
-                background-image: url(cybepunk.jpg);
+                background-image: url(cyberpunk.jpg);
                 background-position: center;
                 background-repeat: no-repeat;
                 background-size: cover;
@@ -285,7 +289,7 @@ class LoginDialog(QDialog):
         if not username.isalpha() or len(username) > 6:
             QMessageBox.warning(self, "Error", "El usuario debe contener solo letras (máximo 6)")
             return
-
+            
         self.username = username
         self.accept()
 
@@ -1044,7 +1048,7 @@ class AdatavisionMainWindow(QMainWindow):
         # Contraseña temporal
         self.temp_password_label = QLabel("Contraseña temporal: Cargando...")
         self.temp_password_label.setStyleSheet("""
-            font-weight: bold;
+                font-weight: bold;
             padding: 5px;
             border: 1px solid #404040;
             border-radius: 3px;
@@ -1060,21 +1064,17 @@ class AdatavisionMainWindow(QMainWindow):
         
         left_layout.addWidget(info_frame)
         
-        # Campo de búsqueda con filtros
+        # Campo de búsqueda
         search_layout = QHBoxLayout()
         search_label = QLabel("Buscar:")
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Introduce texto para buscar...")
-        
-        self.search_filter = QComboBox()
-        self.search_filter.addItems(["Todos", "Servicio", "Email", "Usuario", "Referencia"])
         
         self.search_button = QPushButton("Buscar")
         self.search_button.clicked.connect(self.search_items)
         
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.search_input)
-        search_layout.addWidget(self.search_filter)
         search_layout.addWidget(self.search_button)
         left_layout.addLayout(search_layout)
         
@@ -1089,36 +1089,168 @@ class AdatavisionMainWindow(QMainWindow):
         # Panel derecho (botones)
         right_panel = QWidget()
         right_panel.setFixedWidth(200)
+        right_panel.setStyleSheet("""
+            QWidget {
+                background-color: rgba(26, 26, 26, 0);
+                border-radius: 4px;
+            }
+        """)
         right_layout = QVBoxLayout(right_panel)
         right_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         
         # Botones principales
         self.refresh_button = QPushButton("Actualizar")
+        self.refresh_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(26, 26, 26, 0.95);
+                color: #00c3ff;
+                border: 1px solid rgba(0, 195, 255, 0.2);
+                border-radius: 10px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 195, 255, 0.1);
+                border: 1px solid rgba(0, 195, 255, 0.4);
+                box-shadow: 0 0 20px rgba(0, 195, 255, 0.2);
+            }
+        """)
         self.refresh_button.clicked.connect(self.load_inventory)
         right_layout.addWidget(self.refresh_button)
         
         self.add_button = QPushButton("Agregar")
+        self.add_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(26, 26, 26, 0.95);
+                color: #00ff80;
+                border: 1px solid rgba(0, 255, 128, 0.2);
+                border-radius: 10px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 255, 128, 0.1);
+                border: 1px solid rgba(0, 255, 128, 0.4);
+                box-shadow: 0 0 20px rgba(0, 255, 128, 0.2);
+            }
+        """)
         self.add_button.clicked.connect(self.show_add_dialog)
         right_layout.addWidget(self.add_button)
         
         self.modify_button = QPushButton("Modificar")
+        self.modify_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(26, 26, 26, 0.95);
+                color: #ff00ff;
+                border: 1px solid rgba(255, 0, 255, 0.2);
+                border-radius: 10px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 0, 255, 0.1);
+                border: 1px solid rgba(255, 0, 255, 0.4);
+                box-shadow: 0 0 20px rgba(255, 0, 255, 0.2);
+            }
+        """)
         self.modify_button.clicked.connect(self.show_modify_dialog)
         right_layout.addWidget(self.modify_button)
         
         # Botones de herramientas
         self.encrypt_button = QPushButton("Encriptar")
+        self.encrypt_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(26, 26, 26, 0.95);
+                color: #ff0000;
+                border: 1px solid rgba(255, 0, 0, 0.2);
+                border-radius: 10px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 0, 0, 0.1);
+                border: 1px solid rgba(255, 0, 0, 0.4);
+                box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+            }
+        """)
         self.encrypt_button.clicked.connect(self.encrypt_file)
         right_layout.addWidget(self.encrypt_button)
         
         self.decrypt_button = QPushButton("Desencriptar")
+        self.decrypt_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(26, 26, 26, 0.95);
+                color: #00ff80;
+                border: 1px solid rgba(0, 255, 128, 0.2);
+                border-radius: 10px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 255, 128, 0.1);
+                border: 1px solid rgba(0, 255, 128, 0.4);
+                box-shadow: 0 0 20px rgba(0, 255, 128, 0.2);
+            }
+        """)
         self.decrypt_button.clicked.connect(self.decrypt_file)
         right_layout.addWidget(self.decrypt_button)
         
         self.generate_password_button = QPushButton("Generar Contraseñas")
+        self.generate_password_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(26, 26, 26, 0.95);
+                color: #ff8000;
+                border: 1px solid rgba(255, 128, 0, 0.2);
+                border-radius: 10px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 128, 0, 0.1);
+                border: 1px solid rgba(255, 128, 0, 0.4);
+                box-shadow: 0 0 20px rgba(255, 128, 0, 0.2);
+            }
+        """)
         self.generate_password_button.clicked.connect(self.generate_passwords)
         right_layout.addWidget(self.generate_password_button)
         
         self.generate_key_button = QPushButton("Generar Claves")
+        self.generate_key_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(26, 26, 26, 0.95);
+                color: #8000ff;
+                border: 1px solid rgba(128, 0, 255, 0.2);
+                border-radius: 10px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+            QPushButton:hover {
+                background-color: rgba(128, 0, 255, 0.1);
+                border: 1px solid rgba(128, 0, 255, 0.4);
+                box-shadow: 0 0 20px rgba(128, 0, 255, 0.2);
+            }
+        """)
         self.generate_key_button.clicked.connect(self.generate_keys)
         right_layout.addWidget(self.generate_key_button)
         
@@ -1515,7 +1647,6 @@ class AdatavisionMainWindow(QMainWindow):
                         self.data_table.insertRow(current_row)
                         for j, col in enumerate(CSV_HEADERS):
                             item = QTableWidgetItem(str(row[col]))
-                            # Hacer que las celdas no sean editables pero sean seleccionables
                             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
                             self.data_table.setItem(current_row, j, item)
                         found_items += 1
