@@ -1,0 +1,2 @@
+comando para hacerlo bin con nuitka
+python3 -m nuitka --remove-output --jobs=$(nproc) Adatavision.py
