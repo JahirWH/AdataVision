@@ -483,10 +483,10 @@ class PasswordGeneratorDialog(QDialog):
         result_label.setStyleSheet("font-size: 18px; font-weight: bold; margin-top: 20px;")
         layout.addWidget(result_label)
         
-        self.results_area = QTableWidget(2, 2)
-        self.results_area.setHorizontalHeaderLabels(["Contraseña", "Acciones"])
+        self.results_area = QTableWidget(0, 1)
+        self.results_area.setHorizontalHeaderLabels(["Contraseña"])
         self.results_area.horizontalHeader().setStretchLastSection(True)
-        self.results_area.verticalHeader().setVisible(False)
+        self.results_area.verticalHeader().setVisible(True)
         self.results_area.setStyleSheet("""
             QTableWidget {
                 font-size: 14px;
@@ -496,6 +496,7 @@ class PasswordGeneratorDialog(QDialog):
                 padding: 10px;
             }
         """)
+        self.results_area.cellClicked.connect(self.copy_password_to_clipboard)
         layout.addWidget(self.results_area)
         
         # Botón para cerrar
@@ -566,13 +567,14 @@ class PasswordGeneratorDialog(QDialog):
             password_item = QTableWidgetItem(password)
             password_item.setFlags(password_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.results_area.setItem(i, 0, password_item)
-            
-            # Botón para copiar
-            copy_button = QPushButton("Copiar")
-            copy_button.clicked.connect(lambda _, p=password: QApplication.clipboard().setText(p))
-            self.results_area.setCellWidget(i, 1, copy_button)
         
         self.results_area.resizeColumnsToContents()
+
+    def copy_password_to_clipboard(self, row, column):
+        item = self.results_area.item(row, column)
+        if item is not None:
+            QApplication.clipboard().setText(item.text())
+            QMessageBox.information(self, "Copiado", "Contraseña copiada al portapapeles")
 
 class KeyGeneratorDialog(QDialog):
     def __init__(self, parent=None):
@@ -1490,6 +1492,8 @@ class AdatavisionMainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo cargar el inventario: {str(e)}")
     
+
+    #modal agregar nuevo
     def show_add_dialog(self):
         dialog = QDialog(self)
         dialog.setWindowTitle("Agregar Nuevo Elemento")
@@ -1513,6 +1517,24 @@ class AdatavisionMainWindow(QMainWindow):
         password_label = QLabel("Contraseña:")
         self.password_input = QLineEdit()
         form_layout.addWidget(password_label, 2, 0)
+
+        # Botón para generar contraseña aleatoria
+        generate_password_button = QPushButton("Generar")
+        generate_password_button.setToolTip("contraseña ")
+        generate_password_button.setFixedWidth(10)
+        def set_random_password():
+            import string
+            import random
+            length = 10
+            chars = string.ascii_letters + string.digits + "!@#$%^&*"
+            password = ''.join(random.choice(chars) for _ in range(length))
+            self.password_input.setText(password)
+        generate_password_button.clicked.connect(set_random_password)
+
+        password_input_layout = QHBoxLayout()
+        password_input_layout.addWidget(self.password_input)
+        password_input_layout.addWidget(generate_password_button)
+        form_layout.addLayout(password_input_layout, 2, 1)
         form_layout.addWidget(self.password_input, 2, 1)
         
         username_label = QLabel("Usuario:")
@@ -1829,7 +1851,7 @@ class AdatavisionMainWindow(QMainWindow):
         about_text = """
         <h2>Adatavision</h2>
         <p>Gestor de Contraseñas Seguro</p>
-        <p>Versión: 2.0</p>
+        <p>Versión: 3.0</p>
         <p>Esta aplicación permite almacenar y gestionar contraseñas de forma segura.</p>
         <p>Desarrollado con PySide6.</p>
         """
@@ -1862,7 +1884,7 @@ class AdatavisionMainWindow(QMainWindow):
                     with open(resource_path('estado.txt'), 'w') as archivo_estado:
                         archivo_estado.write("encrypted")
                     
-                    QMessageBox.information(self, "Éxito", "Archivo encriptado automáticamente al cerrar")
+                    QMessageBox.information(self, "Éxito", "Archivo encriptado automáticamente")
                 except Exception as e:
                     QMessageBox.warning(self, "Error", 
                                       f"No se pudo encriptar el archivo automáticamente: {str(e)}")
