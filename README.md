@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Security](https://img.shields.io/badge/Security-AES-important)
 
-# AdataVision - Gestor Seguro de Contraseñas
+<div align="center"><img src="logo.png"></div>
 
 AdataVision es un gestor de contraseñas con interfaz gráfica que almacena y protege tus credenciales usando cifrado Fernet seguro. Las claves de cifrado se generan automáticamente a partir del usuario y contraseña, sin guardarlas en disco.
 
