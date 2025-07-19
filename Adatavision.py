@@ -1433,6 +1433,7 @@ class AdatavisionMainWindow(QMainWindow):
                 file.write(now)
                 self.modification_label.setText(f"Última modificación: {now}")
 
+
                 pendiente
     def load_temp_password(self):
         try:
