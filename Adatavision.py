@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                               QFileDialog, QProgressBar, QFrame, QStackedWidget,
                               QScrollArea, QSplashScreen, QToolBar, QStatusBar)
 from PySide6.QtCore import Qt, QTimer, Signal, Slot, QSize, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QFont, QPixmap, QColor, QPalette, QIcon, QKeySequence, QAction
+from PySide6.QtGui import QFont, QPixmap, QPalette, QIcon, QKeySequence, QAction
 from cryptography.fernet import Fernet
 
 
@@ -29,6 +29,7 @@ from cryptography.fernet import Fernet
 TODAY = str(date.today())
 HEADERS = ['Código', 'Servicio', 'Email', 'Password', 'Usuario', 'Referencia', 'Fecha']
 CSV_HEADERS = ['codigo', 'service', 'email', 'password', 'username', 'web', 'fecha']
+TEMP = ['estado', "date" , "temp"]
 
 class ThemeManager:
     def __init__(self):
@@ -1407,10 +1408,17 @@ class AdatavisionMainWindow(QMainWindow):
         self.add_shortcut = QKeySequence("Ctrl+N")
         self.add_button.setShortcut(self.add_shortcut)
     
+
     def load_last_modified(self):
         try:
-            with open(resource_path('date.txt'), 'r') as file:
-                last_modified = file.read()
+            with open(resource_path('info.txt'), 'r') as file:
+                # Leer solo la primera línea
+                first_line = file.readline()
+                # Tomar solo hasta la primera coma (o toda la línea si no hay coma)
+                if ',' in first_line:
+                    last_modified = first_line.split(',', 1)[0].strip()
+                else:
+                    last_modified = first_line.strip()
                 # Convertir la fecha a datetime y formatearla
                 try:
                     date_obj = datetime.strptime(last_modified, "%Y-%m-%d")
@@ -1420,12 +1428,12 @@ class AdatavisionMainWindow(QMainWindow):
                     # Si hay un error al parsear la fecha, mostrar la fecha original
                     self.modification_label.setText(f"Última modificación: {last_modified}")
         except FileNotFoundError:
-            with open(resource_path('date.txt'), 'w') as file:
+            with open(resource_path('info.txt'), 'w') as file:
                 now = datetime.now().strftime("%Y-%m-%d")
                 file.write(now)
                 self.modification_label.setText(f"Última modificación: {now}")
-                
-    
+
+                pendiente
     def load_temp_password(self):
         try:
             with open(resource_path('temp.txt'), 'r') as file:
