@@ -29,7 +29,38 @@ from cryptography.fernet import Fernet
 TODAY = str(date.today())
 HEADERS = ['Código', 'Servicio', 'Email', 'Password', 'Usuario', 'Referencia', 'Fecha']
 CSV_HEADERS = ['codigo', 'service', 'email', 'password', 'username', 'web', 'fecha']
-TEMP = ['estado', "date" , "temp"]
+
+# Funciones auxiliares para manejar info.txt
+def read_info_file():
+    """Lee el archivo info.txt y retorna los datos como lista"""
+    try:
+        with open(resource_path('info.txt'), 'r') as file:
+            line = file.readline().strip()
+            if line:
+                return line.split(',')
+            else:
+                return ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
+    except FileNotFoundError:
+        # Crear archivo por defecto si no existe
+        default_data = ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
+        write_info_file(default_data)
+        return default_data
+
+def write_info_file(data):
+    """Escribe datos al archivo info.txt"""
+    try:
+        with open(resource_path('info.txt'), 'w') as file:
+            file.write(','.join(data))
+    except Exception as e:
+        print(f"Error escribiendo info.txt: {e}")
+
+def update_info_field(index, value):
+    """Actualiza un campo específico en info.txt"""
+    data = read_info_file()
+    if len(data) < 3:
+        data = ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
+    data[index] = str(value)
+    write_info_file(data)
 
 class ThemeManager:
     def __init__(self):
@@ -556,9 +587,8 @@ class PasswordGeneratorDialog(QDialog):
         
         self.update_results_table()
         
-        # Guardar la última contraseña en temp.txt
-        with open('temp.txt', 'w') as file:
-            file.write(self.generated_passwords[-1])
+        # Guardar la última contraseña en info.txt
+        update_info_field(2, self.generated_passwords[-1])
     
     def update_results_table(self):
         self.results_area.setRowCount(len(self.generated_passwords))
@@ -771,13 +801,13 @@ class KeyGeneratorDialog(QDialog):
             return
         
         try:
-            with open('estado.txt', "r") as le:
-                estado = le.read().strip()
+            data = read_info_file()
+            estado = data[0]  # índice 0 para el estado
             if estado == "encrypted":
                 QMessageBox.warning(self, "Error", "El archivo ya está encriptado")
                 return
-        except FileNotFoundError:
-            QMessageBox.warning(self, "Error", "No se encontró el archivo estado.txt")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", "No se pudo verificar el estado del archivo")
             return
         
         try:
@@ -790,8 +820,7 @@ class KeyGeneratorDialog(QDialog):
                 encrypted_file.write(datos_cifrados)
             
             # Actualizar el estado
-            with open('estado.txt', 'w') as archivo_estado:
-                archivo_estado.write("encrypted")
+            update_info_field(0, "encrypted")
             
             QMessageBox.information(self, "Éxito", "El archivo se encriptó con éxito")
             self.accept()
@@ -1411,73 +1440,58 @@ class AdatavisionMainWindow(QMainWindow):
 
     def load_last_modified(self):
         try:
-            with open(resource_path('info.txt'), 'r') as file:
-                # Leer solo la primera línea
-                first_line = file.readline()
-                # Tomar solo hasta la primera coma (o toda la línea si no hay coma)
-                if ',' in first_line:
-                    last_modified = first_line.split(',', 1)[0].strip()
-                else:
-                    last_modified = first_line.strip()
-                # Convertir la fecha a datetime y formatearla
-                try:
-                    date_obj = datetime.strptime(last_modified, "%Y-%m-%d")
-                    formatted_date = date_obj.strftime("%Y-%m-%d")
-                    self.modification_label.setText(f"Última modificación: {formatted_date}")
-                except ValueError:
-                    # Si hay un error al parsear la fecha, mostrar la fecha original
-                    self.modification_label.setText(f"Última modificación: {last_modified}")
-        except FileNotFoundError:
-            with open(resource_path('info.txt'), 'w') as file:
-                now = datetime.now().strftime("%Y-%m-%d")
-                file.split(',', 1)[0].strip().write(now)
-                self.modification_label.setText(f"Última modificación: {now}")
+            data = read_info_file()
+            last_modified = data[1]  # índice 1 para la fecha
+            # Convertir la fecha a datetime y formatearla
+            try:
+                date_obj = datetime.strptime(last_modified, "%Y-%m-%d")
+                formatted_date = date_obj.strftime("%Y-%m-%d")
+                self.modification_label.setText(f"Última modificación: {formatted_date}")
+            except ValueError:
+                # Si hay un error al parsear la fecha, mostrar la fecha original
+                self.modification_label.setText(f"Última modificación: {last_modified}")
+        except Exception as e:
+            now = datetime.now().strftime("%Y-%m-%d")
+            update_info_field(1, now)
+            self.modification_label.setText(f"Última modificación: {now}")
 
 
     def load_temp_password(self):
         try:
-            with open(resource_path('info.txt'), 'r') as file:
-
-                lee = file.readline()
-                dato2 = lee.strip().split(',')
-                temp_password = dato2[1]
-
-                self.temp_password_label.setText(f"temp: {temp_password}")
-        except FileNotFoundError:
-            with open(resource_path('info.txt'), 'w') as file:
-                file.write("No hay contraseña temporal")
-                self.temp_password_label.setText(" No hay contraseña temporal")
+            data = read_info_file()
+            temp_password = data[2]  # índice 2 para la contraseña temporal
+            self.temp_password_label.setText(f"temp: {temp_password}")
+        except Exception as e:
+            update_info_field(2, "No hay contraseña temporal")
+            self.temp_password_label.setText(" No hay contraseña temporal")
     
     def check_file_status(self):
         try:
-            with open(resource_path('info.txt'), 'r') as file:
-                lee = file.readline().strip().split(',')
-                status = lee[2]
-                if status == "encrypted":
-                    self.file_status_label.setText("Estado del archivo: Encriptado")
-                    self.file_status_label.setStyleSheet("color: #27AE60; font-weight: bold;")
-                elif status == "decrypted":
-                    self.file_status_label.setText("Estado del archivo: Desencriptado")
-                    self.file_status_label.setStyleSheet("color: #E74C3C; font-weight: bold;")
-                else:
-                    self.file_status_label.setText("Estado del archivo: Desconocido")
-        except FileNotFoundError:
-            with open(resource_path('info.txt'), 'w') as file:
-                file.write("decrypted")
+            data = read_info_file()
+            status = data[0]  # índice 0 para el estado
+            if status == "encrypted":
+                self.file_status_label.setText("Estado del archivo: Encriptado")
+                self.file_status_label.setStyleSheet("color: #27AE60; font-weight: bold;")
+            elif status == "decrypted":
                 self.file_status_label.setText("Estado del archivo: Desencriptado")
                 self.file_status_label.setStyleSheet("color: #E74C3C; font-weight: bold;")
+            else:
+                self.file_status_label.setText("Estado del archivo: Desconocido")
+        except Exception as e:
+            update_info_field(0, "decrypted")
+            self.file_status_label.setText("Estado del archivo: Desencriptado")
+            self.file_status_label.setStyleSheet("color: #E74C3C; font-weight: bold;")
     
     def load_inventory(self):
         try:
             # Verificar si el archivo está encriptado
-            with open(resource_path('info.txt'), 'r') as file:
-                lee = file.readline().strip().split(',')
-                status = lee[2]
-                if len(status) >= 3 and status[2] == "encrypted":
-                    dialog = EncryptedFileDialog(self)
-                    dialog.exec()
-                    self.data_table.setRowCount(0)
-                    return
+            data = read_info_file()
+            status = data[0]  # índice 0 para el estado
+            if status == "encrypted":
+                dialog = EncryptedFileDialog(self)
+                dialog.exec()
+                self.data_table.setRowCount(0)
+                return
             
             # Cargar datos con CSV nativo
             self.data_table.setRowCount(0)
@@ -1581,15 +1595,14 @@ class AdatavisionMainWindow(QMainWindow):
     def add_new_item(self, dialog=None):
         # Verificar si el archivo está encriptado
         try:
-            with open(resource_path('estado.txt'), 'r') as file:
-                status = file.read().strip()
-                if status == "encrypted":
-                    encrypted_dialog = EncryptedFileDialog(self)
-                    encrypted_dialog.exec()
-                    return
-        except FileNotFoundError:
-            with open(resource_path('estado.txt'), 'w') as file:
-                file.write("decrypted")
+            data = read_info_file()
+            status = data[0]  # índice 0 para el estado
+            if status == "encrypted":
+                encrypted_dialog = EncryptedFileDialog(self)
+                encrypted_dialog.exec()
+                return
+        except Exception as e:
+            update_info_field(0, "decrypted")
         
         # Obtener valores de los campos
         service = self.service_input.text().strip()
@@ -1627,9 +1640,8 @@ class AdatavisionMainWindow(QMainWindow):
                 file.write(f"\n{code},{service},{email},{password},{username},{reference},{today}")
             
             # Actualizar la fecha de modificación
-            with open(resource_path('date.txt'), 'w') as file:
-                now = datetime.now().strftime("%Y-%m-%d")
-                file.write(now)
+            now = datetime.now().strftime("%Y-%m-%d")
+            update_info_field(1, now)
             
             # Limpiar campos
             self.service_input.clear()
@@ -1653,16 +1665,15 @@ class AdatavisionMainWindow(QMainWindow):
     def search_items(self):
         # Verificar si el archivo está encriptado
         try:
-            with open(resource_path('estado.txt'), 'r') as file:
-                status = file.read().strip()
-                if status == "encrypted":
-                    encrypted_dialog = EncryptedFileDialog(self)
-                    encrypted_dialog.exec()
-                    self.data_table.setRowCount(0)
-                    return
-        except FileNotFoundError:
-            with open(resource_path('estado.txt'), 'w') as file:
-                file.write("decrypted")
+            data = read_info_file()
+            status = data[0]  # índice 0 para el estado
+            if status == "encrypted":
+                encrypted_dialog = EncryptedFileDialog(self)
+                encrypted_dialog.exec()
+                self.data_table.setRowCount(0)
+                return
+        except Exception as e:
+            update_info_field(0, "decrypted")
         
         search_text = self.search_input.text().strip().lower()
         
@@ -1699,15 +1710,14 @@ class AdatavisionMainWindow(QMainWindow):
     def encrypt_file(self):
         # Verificar si el archivo ya está encriptado
         try:
-            with open(resource_path('estado.txt'), 'r') as file:
-                status = file.read().strip()
-                if status == "encrypted":
-                    QMessageBox.warning(self, "Archivo Encriptado", 
+            data = read_info_file()
+            status = data[0]  # índice 0 para el estado
+            if status == "encrypted":
+                QMessageBox.warning(self, "Archivo Encriptado", 
                                       "El archivo ya está encriptado.")
-                    return
-        except FileNotFoundError:
-            with open(resource_path('estado.txt'), 'w') as file:
-                file.write("decrypted")
+                return
+        except Exception as e:
+            update_info_field(0, "decrypted")
         
         # Mostrar diálogo para ingresar contraseña
         dialog = PasswordDialog('encrypt', self)
@@ -1729,8 +1739,7 @@ class AdatavisionMainWindow(QMainWindow):
                     encrypted_file.write(datos_cifrados)
                 
                 # Actualizar el estado
-                with open(resource_path('estado.txt'), 'w') as archivo_estado:
-                    archivo_estado.write("encrypted")
+                update_info_field(0, "encrypted")
                 
                 self.check_file_status()
                 self.data_table.setRowCount(0)
@@ -1743,15 +1752,14 @@ class AdatavisionMainWindow(QMainWindow):
     def decrypt_file(self):
         # Verificar si el archivo ya está desencriptado
         try:
-            with open(resource_path('estado.txt'), 'r') as file:
-                status = file.read().strip()
-                if status == "decrypted":
-                    QMessageBox.warning(self, "Archivo Desencriptado", 
+            data = read_info_file()
+            status = data[0]  # índice 0 para el estado
+            if status == "decrypted":
+                QMessageBox.warning(self, "Archivo Desencriptado", 
                                       "El archivo ya está desencriptado.")
-                    return
-        except FileNotFoundError:
-            with open(resource_path('estado.txt'), 'w') as file:
-                file.write("encrypted")
+                return
+        except Exception as e:
+            update_info_field(0, "encrypted")
         
         # Mostrar diálogo para ingresar contraseña
         dialog = PasswordDialog('decrypt', self)
@@ -1776,8 +1784,7 @@ class AdatavisionMainWindow(QMainWindow):
                     decrypted_file.write(datos_descifrados)
                 
                 # Actualizar el estado
-                with open(resource_path('estado.txt'), 'w') as archivo_estado:
-                    archivo_estado.write("decrypted")
+                update_info_field(0, "decrypted")
                 
                 self.check_file_status()
                 self.load_inventory()
@@ -1800,15 +1807,14 @@ class AdatavisionMainWindow(QMainWindow):
     def show_modify_dialog(self):
         # Verificar si el archivo está encriptado
         try:
-            with open(resource_path('estado.txt'), 'r') as file:
-                status = file.read().strip()
-                if status == "encrypted":
-                    encrypted_dialog = EncryptedFileDialog(self)
-                    encrypted_dialog.exec()
-                    return
-        except FileNotFoundError:
-            with open(resource_path('estado.txt'), 'w') as file:
-                file.write("decrypted")
+            data = read_info_file()
+            status = data[0]  # índice 0 para el estado
+            if status == "encrypted":
+                encrypted_dialog = EncryptedFileDialog(self)
+                encrypted_dialog.exec()
+                return
+        except Exception as e:
+            update_info_field(0, "decrypted")
         
         dialog = ModifyDialog(self)
         if dialog.exec():
@@ -1848,9 +1854,8 @@ class AdatavisionMainWindow(QMainWindow):
                     writer.writerows(rows)
                 
                 # Actualizar la fecha de modificación
-                with open(resource_path('date.txt'), 'w') as file:
-                    now = datetime.now().strftime("%Y-%m-%d")
-                    file.write(now)
+                now = datetime.now().strftime("%Y-%m-%d")
+                update_info_field(1, now)
                 
                 # Recargar inventario
                 self.load_inventory()
@@ -1874,8 +1879,8 @@ class AdatavisionMainWindow(QMainWindow):
     def closeEvent(self, event):
         try:
             # Verificar el estado actual del archivo
-            with open(resource_path('estado.txt'), 'r') as file:
-                current_status = file.read().strip()
+            data = read_info_file()
+            current_status = data[0]  # índice 0 para el estado
             
             # Si está desencriptado y tenemos las credenciales, intentar encriptar
             if current_status == "decrypted" and self.last_used_password is not None:
@@ -1895,8 +1900,7 @@ class AdatavisionMainWindow(QMainWindow):
                         encrypted_file.write(datos_cifrados)
                     
                     # Actualizar el estado
-                    with open(resource_path('estado.txt'), 'w') as archivo_estado:
-                        archivo_estado.write("encrypted")
+                    update_info_field(0, "encrypted")
                     
                     QMessageBox.information(self, "Éxito", "Archivo encriptado automáticamente")
                 except Exception as e:
@@ -1917,14 +1921,14 @@ class AdatavisionMainWindow(QMainWindow):
 
     def copy_temp_password(self, event):
         try:
-            with open(resource_path('temp.txt'), 'r') as file:
-                temp_password = file.read().strip()
-                if temp_password != "No hay contraseña temporal":
-                    QApplication.clipboard().setText(temp_password)
-                    self.status_bar.showMessage("Contraseña temporal copiada al portapapeles", 2000)
-                else:
-                    self.status_bar.showMessage("No hay contraseña temporal para copiar", 2000)
-        except FileNotFoundError:
+            data = read_info_file()
+            temp_password = data[2]  # índice 2 para la contraseña temporal
+            if temp_password != "No hay contraseña temporal":
+                QApplication.clipboard().setText(temp_password)
+                self.status_bar.showMessage("Contraseña temporal copiada al portapapeles", 2000)
+            else:
+                self.status_bar.showMessage("No hay contraseña temporal para copiar", 2000)
+        except Exception as e:
             self.status_bar.showMessage("No hay contraseña temporal para copiar", 2000)
 
     def copy_cell_content(self, row, column):
