@@ -1430,25 +1430,29 @@ class AdatavisionMainWindow(QMainWindow):
         except FileNotFoundError:
             with open(resource_path('info.txt'), 'w') as file:
                 now = datetime.now().strftime("%Y-%m-%d")
-                file.write(now)
+                file.split(',', 1)[0].strip().write(now)
                 self.modification_label.setText(f"Última modificación: {now}")
 
 
-                pendiente
     def load_temp_password(self):
         try:
-            with open(resource_path('temp.txt'), 'r') as file:
-                temp_password = file.read()
+            with open(resource_path('info.txt'), 'r') as file:
+
+                lee = file.readline()
+                dato2 = lee.strip().split(',')
+                temp_password = dato2[1]
+
                 self.temp_password_label.setText(f"temp: {temp_password}")
         except FileNotFoundError:
-            with open(resource_path('temp.txt'), 'w') as file:
+            with open(resource_path('info.txt'), 'w') as file:
                 file.write("No hay contraseña temporal")
                 self.temp_password_label.setText(" No hay contraseña temporal")
     
     def check_file_status(self):
         try:
-            with open(resource_path('estado.txt'), 'r') as file:
-                status = file.read().strip()
+            with open(resource_path('info.txt'), 'r') as file:
+                lee = file.readline().strip().split(',')
+                status = lee[2]
                 if status == "encrypted":
                     self.file_status_label.setText("Estado del archivo: Encriptado")
                     self.file_status_label.setStyleSheet("color: #27AE60; font-weight: bold;")
@@ -1458,7 +1462,7 @@ class AdatavisionMainWindow(QMainWindow):
                 else:
                     self.file_status_label.setText("Estado del archivo: Desconocido")
         except FileNotFoundError:
-            with open(resource_path('estado.txt'), 'w') as file:
+            with open(resource_path('info.txt'), 'w') as file:
                 file.write("decrypted")
                 self.file_status_label.setText("Estado del archivo: Desencriptado")
                 self.file_status_label.setStyleSheet("color: #E74C3C; font-weight: bold;")
@@ -1466,9 +1470,10 @@ class AdatavisionMainWindow(QMainWindow):
     def load_inventory(self):
         try:
             # Verificar si el archivo está encriptado
-            with open(resource_path('estado.txt'), 'r') as file:
-                status = file.read().strip()
-                if status == "encrypted":
+            with open(resource_path('info.txt'), 'r') as file:
+                lee = file.readline().strip().split(',')
+                status = lee[2]
+                if len(status) >= 3 and status[2] == "encrypted":
                     dialog = EncryptedFileDialog(self)
                     dialog.exec()
                     self.data_table.setRowCount(0)
