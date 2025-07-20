@@ -16,11 +16,11 @@ def resource_path(relative_path):
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                               QHBoxLayout, QPushButton, QLineEdit, QLabel, 
                               QTableWidget, QTableWidgetItem, QMessageBox, 
-                              QTabWidget, QGridLayout, QComboBox, QDialog,
-                              QFileDialog, QProgressBar, QFrame, QStackedWidget,
-                              QScrollArea, QSplashScreen, QToolBar, QStatusBar)
-from PySide6.QtCore import Qt, QTimer, Signal, Slot, QSize, QPropertyAnimation, QEasingCurve
-from PySide6.QtGui import QFont, QPixmap, QPalette, QIcon, QKeySequence, QAction
+                               QGridLayout, QComboBox, QDialog,
+                              QFileDialog, QFrame, 
+                               QSplashScreen, QToolBar )
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import  QPixmap, QKeySequence, QAction
 from cryptography.fernet import Fernet
 
 
@@ -698,7 +698,7 @@ class KeyGeneratorDialog(QDialog):
         """)
         self.generate_button.clicked.connect(self.generate_key)
         
-        self.save_button = QPushButton("Guardar")
+        self.save_button = QPushButton("Guresultadosardar")
         self.save_button.setEnabled(False)
         self.save_button.setStyleSheet("""
             QPushButton {
@@ -1430,13 +1430,18 @@ class AdatavisionMainWindow(QMainWindow):
         # Accesos rápidos de teclado
         self.refresh_shortcut = QKeySequence("F5")
         self.refresh_button.setShortcut(self.refresh_shortcut)
-        
+
         self.search_shortcut = QKeySequence("Ctrl+F")
         self.search_button.setShortcut(self.search_shortcut)
-        
+
         self.add_shortcut = QKeySequence("Ctrl+N")
         self.add_button.setShortcut(self.add_shortcut)
-    
+
+        self.close_shortcut = QShortcut(QKeySequence("Ctrl+D"), self)
+        self.close_shortcut.activated.connect(self.close)
+
+        
+         
 
     def load_last_modified(self):
         try:
