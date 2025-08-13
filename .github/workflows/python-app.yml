@@ -24,7 +24,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb libgl1-mesa-glx libglib2.0-0
+          sudo apt-get install -y xvfb libglib2.0-0 libxrender1 libxtst6 libxi6
 
       - name: Cache pip dependencies
         uses: actions/cache@v3

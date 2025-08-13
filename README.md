@@ -40,7 +40,7 @@ python Adatavision.py
 ### Opción 2: Instalación con pip
 ```bash
 # Instalar desde el repositorio
-pip install git+https://github.com/tu-usuario/AdataVision.git
+pip install git+https://github.com/JahirWH/AdataVision.git
 
 # Ejecutar
 adatavision
