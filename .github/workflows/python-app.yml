@@ -27,7 +27,7 @@ jobs:
           sudo apt-get install -y xvfb libglib2.0-0 libxrender1 libxtst6 libxi6 libegl1 libgl1-mesa-dri mesa-utils
 
       - name: Cache pip dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
@@ -94,7 +94,7 @@ jobs:
           echo "Python version: $(python --version)" >> dist/build_info.txt
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: dist/
