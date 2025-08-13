@@ -7,9 +7,67 @@ on:
     branches: [main, master]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
 
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgl1-mesa-glx libglib2.0-0
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+
+      - name: Run tests with virtual display
+        env:
+          CI: true
+          DISPLAY: ":99.0"
+          QT_QPA_PLATFORM: "offscreen"
+        run: |
+          # Start virtual display
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          sleep 2
+          
+          # Run tests
+          pytest -v --tb=short --strict-markers -m "not gui"
+
+      - name: Check Python syntax
+        run: |
+          find . -name "*.py" -not -path "./.venv/*" -not -path "./venv/*" -exec python -m py_compile {} \;
+
+      - name: Run linting checks
+        run: |
+          pip install flake8
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
     steps:
       - uses: actions/checkout@v4
 
@@ -18,30 +76,20 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb  # Para tests que requieran display
-
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-mock
-          # Instalar dependencias básicas para tu app
-          pip install PySide6 cryptography
-          # Instalar desde requirements.txt si existe
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+          pip install -r requirements.txt
 
-      - name: Run tests
-        env:
-          CI: true # Variable para saltar tests de GUI
-          DISPLAY: ":99.0" # Display virtual para tests
+      - name: Create build artifacts
         run: |
-          # Ejecutar tests con display virtual
-          xvfb-run -a pytest -v --tb=short
+          mkdir -p dist
+          echo "Build completed successfully" > dist/build_info.txt
+          echo "Build date: $(date)" >> dist/build_info.txt
+          echo "Python version: $(python --version)" >> dist/build_info.txt
 
-      - name: Check Python syntax
-        run: |
-          # Verificar sintaxis de archivos Python
-          find . -name "*.py" -exec python -m py_compile {} \;
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: dist/

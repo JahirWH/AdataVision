@@ -1,4 +1,0 @@
-
-# Dependencias principales
-PySide6>=6.5.0
-cryptography>=41.0.0
