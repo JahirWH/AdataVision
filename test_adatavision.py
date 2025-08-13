@@ -8,7 +8,6 @@ import tempfile
 import csv
 from unittest.mock import patch, MagicMock
 from datetime import date, datetime
-from unittest import mock
 
 def test_basic_imports():
     """Test para verificar que todas las librerías básicas se importan correctamente"""
@@ -43,7 +42,7 @@ def test_cryptography_import():
         pytest.fail(f"Error al importar cryptography: {e}")
 
 def test_resource_path_function():
-    """Test para la función resource_path"""
+    """Test para la función resource_path sin _MEIPASS"""
     # Simulamos la función resource_path basada en tu código
     def resource_path(relative_path):
         try:
@@ -52,27 +51,53 @@ def test_resource_path_function():
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
     
-    # Test con ruta relativa normal
+    # Test con ruta relativa normal (sin _MEIPASS)
     result = resource_path("test_file.txt")
     assert isinstance(result, str)
     assert "test_file.txt" in result
+    # Verificar que usa el directorio actual cuando no hay _MEIPASS
+    assert os.path.abspath(".") in result
 
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except AttributeError:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
-def test_resource_path_with_meipass():
+def test_resource_path_with_meipass(monkeypatch):
     """Test para resource_path cuando existe _MEIPASS (PyInstaller)"""
-    with mock.patch.object(sys, '_MEIPASS', '/tmp/fake_meipass', create=True):
-        resultado = resource_path('archivo.txt')
-        assert resultado == os.path.join('/tmp/fake_meipass', 'archivo.txt')
-    # Simulamos que _MEIPASS existe
-    with patch.object(sys, '_MEIPASS', '/tmp/pyinstaller'):
-        result = resource_path("icon.png")
-        assert result == "/tmp/pyinstaller/icon.png"
+    # Simulamos que _MEIPASS existe usando monkeypatch
+    monkeypatch.setattr(sys, "_MEIPASS", "/tmp/fake_meipass", raising=False)
+    
+    # Definimos la función resource_path localmente para el test
+    def resource_path(relative_path):
+        try:
+            base_path = sys._MEIPASS
+        except AttributeError:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
+    
+    # Test con _MEIPASS configurado
+    result = resource_path("archivo.txt")
+    assert result == os.path.join("/tmp/fake_meipass", "archivo.txt")
+    
+    # Limpiar el atributo después del test
+    monkeypatch.delattr(sys, "_MEIPASS", raising=False)
+
+def test_resource_path_edge_cases():
+    """Test para casos edge de resource_path"""
+    def resource_path(relative_path):
+        try:
+            base_path = sys._MEIPASS
+        except AttributeError:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
+    
+    # Test con ruta vacía
+    result = resource_path("")
+    assert result == os.path.join(os.path.abspath("."), "")
+    
+    # Test con ruta con barras
+    result = resource_path("folder/file.txt")
+    assert "folder/file.txt" in result
+    
+    # Test con ruta absoluta (debería funcionar igual)
+    result = resource_path("/absolute/path")
+    assert "/absolute/path" in result
 
 def test_date_functionality():
     """Test para verificar funcionalidad de fechas"""
