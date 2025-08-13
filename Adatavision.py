@@ -5,6 +5,33 @@ import base64
 import hashlib
 from datetime import date, datetime
 from random import choice
+from io import StringIO
+import resource  # Para manejar rutas de recursos en PyInstaller
+
+from PySide6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QPushButton,
+    QLineEdit,
+    QLabel,
+    QTableWidget,
+    QTableWidgetItem,
+    QMessageBox,
+    QGridLayout,
+    QComboBox,
+    QDialog,
+    QFileDialog,
+    QFrame,
+    QSplashScreen,
+    QToolBar,
+)
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QPixmap, QKeySequence, QAction
+from cryptography.fernet import Fernet
+
 
 def resource_path(relative_path):
     try:
@@ -13,54 +40,59 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                              QHBoxLayout, QPushButton, QLineEdit, QLabel, 
-                              QTableWidget, QTableWidgetItem, QMessageBox, 
-                               QGridLayout, QComboBox, QDialog,
-                              QFileDialog, QFrame, 
-                               QSplashScreen, QToolBar )
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import  QPixmap, QKeySequence, QAction
-from cryptography.fernet import Fernet
-
-
 
 # Constantes globales
 TODAY = str(date.today())
-HEADERS = ['Código', 'Servicio', 'Email', 'Password', 'Usuario', 'Referencia', 'Fecha']
-CSV_HEADERS = ['codigo', 'service', 'email', 'password', 'username', 'web', 'fecha']
+HEADERS = ["Código", "Servicio", "Email", "Password", "Usuario", "Referencia", "Fecha"]
+CSV_HEADERS = ["codigo", "service", "email", "password", "username", "web", "fecha"]
+
 
 # Funciones auxiliares para manejar info.txt
 def read_info_file():
     """Lee el archivo info.txt y retorna los datos como lista"""
     try:
-        with open(resource_path('info.txt'), 'r') as file:
+        with open(resource_path("info.txt"), "r") as file:
             line = file.readline().strip()
             if line:
-                return line.split(',')
+                return line.split(",")
             else:
-                return ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
+                return [
+                    "decrypted",
+                    datetime.now().strftime("%Y-%m-%d"),
+                    "No hay contraseña temporal",
+                ]
     except FileNotFoundError:
         # Crear archivo por defecto si no existe
-        default_data = ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
+        default_data = [
+            "decrypted",
+            datetime.now().strftime("%Y-%m-%d"),
+            "No hay contraseña temporal",
+        ]
         write_info_file(default_data)
         return default_data
+
 
 def write_info_file(data):
     """Escribe datos al archivo info.txt"""
     try:
-        with open(resource_path('info.txt'), 'w') as file:
-            file.write(','.join(data))
+        with open(resource_path("info.txt"), "w") as file:
+            file.write(",".join(data))
     except Exception as e:
         print(f"Error escribiendo info.txt: {e}")
+
 
 def update_info_field(index, value):
     """Actualiza un campo específico en info.txt"""
     data = read_info_file()
     if len(data) < 3:
-        data = ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
+        data = [
+            "decrypted",
+            datetime.now().strftime("%Y-%m-%d"),
+            "No hay contraseña temporal",
+        ]
     data[index] = str(value)
     write_info_file(data)
+
 
 class ThemeManager:
     def __init__(self):
@@ -73,7 +105,7 @@ class ThemeManager:
                 "button_hover": "background-color: rgba(64, 64, 64, 0.9);",
                 "text_color": "color: #ffffff;",
                 "border_color": "border: 1px solid rgba(64, 64, 64, 0.9);",
-                "accent_color": "#0EFF9B"
+                "accent_color": "#0EFF9B",
             },
             "light": {
                 "main_bg": "background-color: #f0f0f0;",
@@ -82,10 +114,10 @@ class ThemeManager:
                 "button_hover": "background-color: #d0d0d0;",
                 "text_color": "color: #000000;",
                 "border_color": "border: 1px solid #cccccc;",
-                "accent_color": "#007bff"
-            }
+                "accent_color": "#007bff",
+            },
         }
-    
+
     def get_theme_style(self):
         theme = self.themes[self.current_theme]
         return f"""
@@ -161,56 +193,61 @@ class ThemeManager:
                 border: none;
             }}
         """
-    
+
     def toggle_theme(self):
         self.current_theme = "light" if self.current_theme == "dark" else "dark"
         return self.get_theme_style()
 
+
 class SplashScreen(QSplashScreen):
     def __init__(self):
         super().__init__()
-   
-        
-   
+
+
 class LoginDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        
+
         self.username = ""
-        
+
         # Layout principal
         main_layout = QHBoxLayout()
         main_layout.setContentsMargins(20, 20, 20, 20)
         self.setLayout(main_layout)
-        
+
         # Panel izquierdo (formulario)
         left_panel = QWidget()
-        left_panel.setStyleSheet("""
+        left_panel.setStyleSheet(
+            """
             QWidget {
                 background-color: rgba(45, 45, 45, 0);
                 border-radius: 4px;
             }
-        """)
+        """
+        )
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(20, 20, 20, 20)
         left_layout.setSpacing(15)
-        
+
         # Título del formulario
         form_title = QLabel("Usuario login")
-        form_title.setStyleSheet("""
+        form_title.setStyleSheet(
+            """
             font-size: 22px;
             font-weight: bold;
             color:#0EFF9B;
                          
-        """)
+        """
+        )
         form_title.setAlignment(Qt.AlignmentFlag.AlignLeft)
         left_layout.addWidget(form_title)
-        
+
         # Campo de usuario
         self.user_input = QLineEdit()
         self.user_input.setPlaceholderText("Máximo 6 letras")
         self.user_input.setMaxLength(6)
-        self.user_input.setStyleSheet("""
+        self.user_input.setStyleSheet(
+            """
             QLineEdit {
                 border: 1px solid #404040;
                 border-radius: 4px;
@@ -222,15 +259,17 @@ class LoginDialog(QDialog):
             QLineEdit:focus {
                 border: 1px solid #666666;
             }
-        """)
+        """
+        )
         left_layout.addWidget(self.user_input)
-        
+
         # Botones
         button_layout = QHBoxLayout()
         button_layout.setSpacing(10)
-        
+
         self.login_button = QPushButton("Ingresar")
-        self.login_button.setStyleSheet("""
+        self.login_button.setStyleSheet(
+            """
             QPushButton {
                 background-color:rgba(47, 115, 179, 0.71);
                 color: #ffffff;
@@ -242,11 +281,13 @@ class LoginDialog(QDialog):
             QPushButton:hover {
                 background-color:rgba(17, 17, 17, 0.84);
             }
-        """)
+        """
+        )
         self.login_button.clicked.connect(self.accept_login)
-        
+
         self.exit_button = QPushButton("Salir")
-        self.exit_button.setStyleSheet("""
+        self.exit_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: #404040;
                 color: #ffffff;
@@ -258,24 +299,27 @@ class LoginDialog(QDialog):
             QPushButton:hover {
                 background-color: #666666;
             }
-        """)
+        """
+        )
         self.exit_button.clicked.connect(self.reject)
-        
+
         button_layout.addWidget(self.login_button)
         button_layout.addWidget(self.exit_button)
         left_layout.addLayout(button_layout)
-        
+
         # Panel derecho (descripción)
         right_panel = QWidget()
-        right_panel.setStyleSheet("""
+        right_panel.setStyleSheet(
+            """
             QWidget {
                 background-color: rgba(45, 45, 45, 0.3);
                 border-radius: 4px;
             }
-        """)
+        """
+        )
         right_layout = QVBoxLayout(right_panel)
         right_layout.setContentsMargins(20, 20, 20, 20)
-        
+
         # Título y descripción en un solo párrafo
         description_text = """
         <p style='color: white; font-size: 14px; margin: 0; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;'>
@@ -284,57 +328,63 @@ class LoginDialog(QDialog):
         Los datos se encriptan automáticamente y solo podrán ser desencriptados con las credenciales originales.
         </p>
         """
-        
+
         description_label = QLabel(description_text)
         description_label.setWordWrap(True)
         description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         right_layout.addWidget(description_label)
-        
+
         # Agregar imagen
         image_label = QLabel()
         pixmap = QPixmap(resource_path("taurs.png"))
-        scaled_pixmap = pixmap.scaled(200, 140, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        scaled_pixmap = pixmap.scaled(
+            200,
+            140,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
         image_label.setPixmap(scaled_pixmap)
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         right_layout.addWidget(image_label)
-        
+
         main_layout.addWidget(left_panel)
         main_layout.addWidget(right_panel)
-        
+
         # Establecer tamaño fijo
         self.setFixedSize(700, 400)
-        
+
         # Establecer imagen de fondo
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QDialog {
                 background-image: url(cyberpunk.jpg);
                 background-position: center;
                 background-repeat: no-repeat;
                 background-size: cover;
             }
-        """)
-    
+        """
+        )
+
     def accept_login(self):
         username = self.user_input.text()
         # password = self.password_input.text()
-        
+
         if not username.isalpha() or len(username) > 6:
-            QMessageBox.warning(self, "Error", "El usuario debe contener solo letras (máximo 6)")
+            QMessageBox.warning(
+                self, "Error", "El usuario debe contener solo letras (máximo 6)"
+            )
             return
-            
+
         self.username = username
         self.accept()
-
-
-
 
 
 class PasswordDialog(QDialog):
     def __init__(self, mode, parent=None):
         super().__init__(parent)
         self.mode = mode  # 'encrypt' o 'decrypt'
-        
-        if mode == 'encrypt':
+
+        if mode == "encrypt":
             self.setWindowTitle("Encriptar Archivo")
             title_text = "Encriptación"
             button_text = "Encriptar"
@@ -342,19 +392,19 @@ class PasswordDialog(QDialog):
             self.setWindowTitle("Desencriptar Archivo")
             title_text = "Desencriptación"
             button_text = "Desencriptar"
-        
+
         self.setFixedSize(350, 150)
-        
+
         # Layout principal
         layout = QVBoxLayout()
         self.setLayout(layout)
-        
+
         # Título
         title_label = QLabel(title_text)
         title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
-        
+
         # Campo para la clave numérica
         key_layout = QHBoxLayout()
         key_label = QLabel("Clave numérica:")
@@ -365,11 +415,12 @@ class PasswordDialog(QDialog):
         key_layout.addWidget(key_label)
         key_layout.addWidget(self.key_input)
         layout.addLayout(key_layout)
-        
+
         # Botones
         button_layout = QHBoxLayout()
         self.process_button = QPushButton(button_text)
-        self.process_button.setStyleSheet("""
+        self.process_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: #3498DB;
                 color: white;
@@ -379,45 +430,51 @@ class PasswordDialog(QDialog):
             QPushButton:hover {
                 background-color: #2980B9;
             }
-        """)
+        """
+        )
         self.process_button.clicked.connect(self.accept_password)
-        
+
         self.cancel_button = QPushButton("Cancelar")
         self.cancel_button.clicked.connect(self.reject)
-        
+
         button_layout.addWidget(self.process_button)
         button_layout.addWidget(self.cancel_button)
         layout.addLayout(button_layout)
-    
+
     def accept_password(self):
         password = self.key_input.text()
         if not password.isdigit() or len(password) > 6:
-            QMessageBox.warning(self, "Error", "La clave debe contener solo números (máximo 6)")
+            QMessageBox.warning(
+                self, "Error", "La clave debe contener solo números (máximo 6)"
+            )
             return
         self.password = password
         self.accept()
+
 
 class PasswordGeneratorDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Generador de Contraseñas")
         self.setFixedSize(600, 500)  # Aumentado el tamaño
-        
+
         # Layout principal
         layout = QVBoxLayout()
         self.setLayout(layout)
-        
+
         # Título
         title_label = QLabel("Generador de Contraseñas")
-        title_label.setStyleSheet("""
+        title_label.setStyleSheet(
+            """
             font-size: 24px; 
             font-weight: bold;
             color: #00ff9f;
             margin-bottom: 20px;
-        """)
+        """
+        )
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
-        
+
         # Longitud de la contraseña
         length_layout = QHBoxLayout()
         length_label = QLabel("Longitud:")
@@ -425,75 +482,86 @@ class PasswordGeneratorDialog(QDialog):
         self.length_input = QLineEdit()
         self.length_input.setPlaceholderText("Cantidad de caracteres")
         self.length_input.setText("12")
-        self.length_input.setStyleSheet("""
+        self.length_input.setStyleSheet(
+            """
             QLineEdit {
                 padding: 8px;
                 font-size: 14px;
                 min-width: 200px;
             }
-        """)
+        """
+        )
         length_layout.addWidget(length_label)
         length_layout.addWidget(self.length_input)
         layout.addLayout(length_layout)
-        
+
         # Opciones de caracteres
         options_layout = QGridLayout()
         options_layout.setSpacing(15)
-        
+
         self.include_lowercase = QComboBox()
         self.include_lowercase.addItems(["Incluir minúsculas", "No incluir minúsculas"])
-        self.include_lowercase.setStyleSheet("""
+        self.include_lowercase.setStyleSheet(
+            """
             QComboBox {
                 padding: 8px;
                 font-size: 14px;
                 min-width: 100px;
                 height:20px;
             }
-        """)
+        """
+        )
         options_layout.addWidget(QLabel("Minúsculas:"), 0, 0)
         options_layout.addWidget(self.include_lowercase, 0, 1)
-        
+
         self.include_uppercase = QComboBox()
         self.include_uppercase.addItems(["Incluir mayúsculas", "No incluir mayúsculas"])
-        self.include_uppercase.setStyleSheet("""
+        self.include_uppercase.setStyleSheet(
+            """
             QComboBox {
                 padding: 8px;
                 font-size: 14px;
                 min-width: 200px;
             }
-        """)
+        """
+        )
         options_layout.addWidget(QLabel("Mayúsculas:"), 1, 0)
         options_layout.addWidget(self.include_uppercase, 1, 1)
-        
+
         self.include_numbers = QComboBox()
         self.include_numbers.addItems(["Incluir números", "No incluir números"])
-        self.include_numbers.setStyleSheet("""
+        self.include_numbers.setStyleSheet(
+            """
             QComboBox {
                 padding: 8px;
                 font-size: 14px;
                 min-width: 200px;
             }
-        """)
+        """
+        )
         options_layout.addWidget(QLabel("Números:"), 2, 0)
         options_layout.addWidget(self.include_numbers, 2, 1)
-        
+
         self.include_symbols = QComboBox()
         self.include_symbols.addItems(["Incluir símbolos", "No incluir símbolos"])
-        self.include_symbols.setStyleSheet("""
+        self.include_symbols.setStyleSheet(
+            """
             QComboBox {
                 padding: 8px;
                 font-size: 14px;
                 min-width: 200px;
             }
-        """)
+        """
+        )
         options_layout.addWidget(QLabel("Símbolos:"), 3, 0)
         options_layout.addWidget(self.include_symbols, 3, 1)
-        
+
         layout.addLayout(options_layout)
-        
+
         # Botón para generar
         self.generate_button = QPushButton("Generar Contraseñas")
-        self.generate_button.setStyleSheet("""
+        self.generate_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: #3498DB;
                 color: white;
@@ -506,20 +574,24 @@ class PasswordGeneratorDialog(QDialog):
             QPushButton:hover {
                 background-color: #2980B9;
             }
-        """)
+        """
+        )
         self.generate_button.clicked.connect(self.generate_passwords)
         layout.addWidget(self.generate_button, alignment=Qt.AlignmentFlag.AlignCenter)
-        
+
         # Área de resultados
         result_label = QLabel("Contraseñas Generadas:")
-        result_label.setStyleSheet("font-size: 18px; font-weight: bold; margin-top: 20px;")
+        result_label.setStyleSheet(
+            "font-size: 18px; font-weight: bold; margin-top: 20px;"
+        )
         layout.addWidget(result_label)
-        
+
         self.results_area = QTableWidget(0, 1)
         self.results_area.setHorizontalHeaderLabels(["Contraseña"])
         self.results_area.horizontalHeader().setStretchLastSection(True)
         self.results_area.verticalHeader().setVisible(True)
-        self.results_area.setStyleSheet("""
+        self.results_area.setStyleSheet(
+            """
             QTableWidget {
                 font-size: 14px;
                 min-height: 150px;
@@ -527,13 +599,15 @@ class PasswordGeneratorDialog(QDialog):
             QTableWidget::item {
                 padding: 10px;
             }
-        """)
+        """
+        )
         self.results_area.cellClicked.connect(self.copy_password_to_clipboard)
         layout.addWidget(self.results_area)
-        
+
         # Botón para cerrar
         self.close_button = QPushButton("Cerrar")
-        self.close_button.setStyleSheet("""
+        self.close_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: #E74C3C;
                 color: white;
@@ -545,31 +619,36 @@ class PasswordGeneratorDialog(QDialog):
             QPushButton:hover {
                 background-color: #C0392B;
             }
-        """)
+        """
+        )
         self.close_button.clicked.connect(self.accept)
         layout.addWidget(self.close_button, alignment=Qt.AlignmentFlag.AlignCenter)
-        
+
         self.generated_passwords = []
-    
+
     def generate_passwords(self):
         try:
             length = int(self.length_input.text())
             if length <= 0:
-                QMessageBox.warning(self, "Error", "La longitud debe ser un número positivo")
+                QMessageBox.warning(
+                    self, "Error", "La longitud debe ser un número positivo"
+                )
                 return
         except ValueError:
             QMessageBox.warning(self, "Error", "La longitud debe ser un número entero")
             return
-        
+
         use_lowercase = self.include_lowercase.currentText().startswith("Incluir")
         use_uppercase = self.include_uppercase.currentText().startswith("Incluir")
         use_numbers = self.include_numbers.currentText().startswith("Incluir")
         use_symbols = self.include_symbols.currentText().startswith("Incluir")
-        
+
         if not any([use_lowercase, use_uppercase, use_numbers, use_symbols]):
-            QMessageBox.warning(self, "Error", "Debe seleccionar al menos un tipo de caracteres")
+            QMessageBox.warning(
+                self, "Error", "Debe seleccionar al menos un tipo de caracteres"
+            )
             return
-        
+
         chars = ""
         if use_lowercase:
             chars += "abcdefghijklmnopqrstuvwxyz"
@@ -579,55 +658,60 @@ class PasswordGeneratorDialog(QDialog):
             chars += "0123456789"
         if use_symbols:
             chars += "<=>@#%&+!?*()[]{}^~-_.:,;"
-        
+
         self.generated_passwords = []
         for _ in range(2):
-            password = ''.join([choice(chars) for _ in range(length)])
+            password = "".join([choice(chars) for _ in range(length)])
             self.generated_passwords.append(password)
-        
+
         self.update_results_table()
-        
+
         # Guardar la última contraseña en info.txt
         update_info_field(2, self.generated_passwords[-1])
-    
+
     def update_results_table(self):
         self.results_area.setRowCount(len(self.generated_passwords))
-        
+
         for i, password in enumerate(self.generated_passwords):
             # Contraseña
             password_item = QTableWidgetItem(password)
             password_item.setFlags(password_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.results_area.setItem(i, 0, password_item)
-        
+
         self.results_area.resizeColumnsToContents()
 
     def copy_password_to_clipboard(self, row, column):
         item = self.results_area.item(row, column)
         if item is not None:
             QApplication.clipboard().setText(item.text())
-            QMessageBox.information(self, "Copiado", "Contraseña copiada al portapapeles")
+            QMessageBox.information(
+                self, "Copiado", "Contraseña copiada al portapapeles"
+            )
+
 
 class KeyGeneratorDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Generador de Claves")
         self.setFixedSize(500, 400)  # Aumentado el tamaño
-        
+
         # Layout principal
         layout = QVBoxLayout()
         self.setLayout(layout)
-        
+
         # Título
         title_label = QLabel("Generador de Claves de Encriptación")
-        title_label.setStyleSheet("""
+        title_label.setStyleSheet(
+            """
             font-size: 24px; 
             font-weight: bold;
             color: #00ff9f;
             margin-bottom: 20px;
-        """)
+        """
+        )
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
-        
+
         # Campo de usuario
         user_layout = QHBoxLayout()
         user_label = QLabel("Usuario:")
@@ -635,17 +719,19 @@ class KeyGeneratorDialog(QDialog):
         self.user_input = QLineEdit()
         self.user_input.setPlaceholderText("Máximo 6 letras")
         self.user_input.setMaxLength(6)
-        self.user_input.setStyleSheet("""
+        self.user_input.setStyleSheet(
+            """
             QLineEdit {
                 padding: 8px;
                 font-size: 14px;
                 min-width: 200px;
             }
-        """)
+        """
+        )
         user_layout.addWidget(user_label)
         user_layout.addWidget(self.user_input)
         layout.addLayout(user_layout)
-        
+
         # Campo de clave numérica
         key_layout = QHBoxLayout()
         key_label = QLabel("Clave numérica:")
@@ -653,37 +739,42 @@ class KeyGeneratorDialog(QDialog):
         self.key_input = QLineEdit()
         self.key_input.setPlaceholderText("Máximo 6 dígitos")
         self.key_input.setMaxLength(6)
-        self.key_input.setStyleSheet("""
+        self.key_input.setStyleSheet(
+            """
             QLineEdit {
                 padding: 8px;
                 font-size: 14px;
                 min-width: 200px;
             }
-        """)
+        """
+        )
         key_layout.addWidget(key_label)
         key_layout.addWidget(self.key_input)
         layout.addLayout(key_layout)
-        
+
         # Área para mostrar la clave generada
         self.key_display = QLineEdit()
         self.key_display.setReadOnly(True)
         self.key_display.setPlaceholderText("La clave generada se mostrará aquí")
-        self.key_display.setStyleSheet("""
+        self.key_display.setStyleSheet(
+            """
             QLineEdit {
                 background-color: #1a1a2e;
                 padding: 10px;
                 font-size: 14px;
                 min-height: 40px;
             }
-        """)
+        """
+        )
         layout.addWidget(self.key_display)
-        
+
         # Botones
         button_layout = QHBoxLayout()
         button_layout.setSpacing(10)
-        
+
         self.generate_button = QPushButton("Generar Clave")
-        self.generate_button.setStyleSheet("""
+        self.generate_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: #3498DB;
                 color: white;
@@ -695,12 +786,14 @@ class KeyGeneratorDialog(QDialog):
             QPushButton:hover {
                 background-color: #2980B9;
             }
-        """)
+        """
+        )
         self.generate_button.clicked.connect(self.generate_key)
-        
+
         self.save_button = QPushButton("Guresultadosardar")
         self.save_button.setEnabled(False)
-        self.save_button.setStyleSheet("""
+        self.save_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: #2ECC71;
                 color: white;
@@ -715,12 +808,14 @@ class KeyGeneratorDialog(QDialog):
             QPushButton:disabled {
                 background-color: #95A5A6;
             }
-        """)
+        """
+        )
         self.save_button.clicked.connect(self.save_key)
-        
+
         self.encrypt_button = QPushButton("Encriptar Ahora")
         self.encrypt_button.setEnabled(False)
-        self.encrypt_button.setStyleSheet("""
+        self.encrypt_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: #E74C3C;
                 color: white;
@@ -735,17 +830,19 @@ class KeyGeneratorDialog(QDialog):
             QPushButton:disabled {
                 background-color: #95A5A6;
             }
-        """)
+        """
+        )
         self.encrypt_button.clicked.connect(self.encrypt_now)
-        
+
         button_layout.addWidget(self.generate_button)
         button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.encrypt_button)
         layout.addLayout(button_layout)
-        
+
         # Botón para cerrar
         self.close_button = QPushButton("Cerrar")
-        self.close_button.setStyleSheet("""
+        self.close_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: #95A5A6;
                 color: white;
@@ -757,49 +854,56 @@ class KeyGeneratorDialog(QDialog):
             QPushButton:hover {
                 background-color: #7F8C8D;
             }
-        """)
+        """
+        )
         self.close_button.clicked.connect(self.reject)
         layout.addWidget(self.close_button, alignment=Qt.AlignmentFlag.AlignCenter)
-        
+
         self.generated_key = None
-    
+
     def generate_key(self):
         username = self.user_input.text()
         if not username.isalpha() or len(username) > 6:
-            QMessageBox.warning(self, "Error", "El usuario debe contener solo letras (máximo 6)")
+            QMessageBox.warning(
+                self, "Error", "El usuario debe contener solo letras (máximo 6)"
+            )
             return
-        
+
         key = self.key_input.text()
         if not key.isdigit() or len(key) > 6:
-            QMessageBox.warning(self, "Error", "La clave debe contener solo números (máximo 6)")
+            QMessageBox.warning(
+                self, "Error", "La clave debe contener solo números (máximo 6)"
+            )
             return
-        
+
         clave_base = username + key
         clave_hash = hashlib.sha256(clave_base.encode()).digest()
         clave_final = base64.urlsafe_b64encode(clave_hash[:32])
-        
+
         self.generated_key = clave_final
         self.key_display.setText(clave_final.decode())
-        
+
         self.save_button.setEnabled(True)
         self.encrypt_button.setEnabled(True)
-    
+
     def save_key(self):
         if not self.generated_key:
             return
-        
+
         username = self.user_input.text()
         key = self.key_input.text()
-        
-        with open('clave.txt', 'wb') as archivo:
+
+        with open("clave.txt", "wb") as archivo:
             archivo.write(f"Usuario: {username}:password:{key}\n".encode())
-        
-        QMessageBox.information(self, "Éxito", "La clave se ha guardado con éxito en clave.txt")
-    
+
+        QMessageBox.information(
+            self, "Éxito", "La clave se ha guardado con éxito en clave.txt"
+        )
+
     def encrypt_now(self):
         if not self.generated_key:
             return
-        
+
         try:
             data = read_info_file()
             estado = data[0]  # índice 0 para el estado
@@ -807,32 +911,38 @@ class KeyGeneratorDialog(QDialog):
                 QMessageBox.warning(self, "Error", "El archivo ya está encriptado")
                 return
         except Exception as e:
-            QMessageBox.warning(self, "Error", "No se pudo verificar el estado del archivo")
+            QMessageBox.warning(
+                self, "Error", "No se pudo verificar el estado del archivo"
+            )
             return
-        
+
         try:
-            with open('Inventario.csv', 'rb') as archivo:
+            with open("Inventario.csv", "rb") as archivo:
                 datos = archivo.read()
                 f = Fernet(self.generated_key)
                 datos_cifrados = f.encrypt(datos)
-            
-            with open('Inventario.csv', 'wb') as encrypted_file:
+
+            with open("Inventario.csv", "wb") as encrypted_file:
                 encrypted_file.write(datos_cifrados)
-            
+
             # Actualizar el estado
             update_info_field(0, "encrypted")
-            
+
             QMessageBox.information(self, "Éxito", "El archivo se encriptó con éxito")
             self.accept()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo encriptar el archivo: {str(e)}")
+            QMessageBox.critical(
+                self, "Error", f"No se pudo encriptar el archivo: {str(e)}"
+            )
+
 
 class EncryptedFileDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Archivo Encriptado")
         self.setFixedSize(400, 300)
-        self.setStyleSheet("""
+        self.setStyleSheet(
+            """
             QDialog {
                 background-color: #1a1a1a;
             }
@@ -852,57 +962,65 @@ class EncryptedFileDialog(QDialog):
             QPushButton:hover {
                 background-color: #666666;
             }
-        """)
-        
+        """
+        )
+
         layout = QVBoxLayout(self)
         layout.setSpacing(20)
         layout.setContentsMargins(30, 30, 30, 30)
-        
+
         # Icono de candado
         lock_label = QLabel("🔒")
-        lock_label.setStyleSheet("""
+        lock_label.setStyleSheet(
+            """
             font-size: 48px;
             color: #ffffff;
-        """)
+        """
+        )
         lock_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(lock_label)
-        
+
         # Título
         title_label = QLabel("ARCHIVO ENCRIPTADO")
-        title_label.setStyleSheet("""
+        title_label.setStyleSheet(
+            """
             font-size: 24px;
             font-weight: bold;
             color: #ffffff;
             margin: 10px 0;
-        """)
+        """
+        )
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
-        
+
         # Mensaje
-        message_label = QLabel("Para acceder al contenido, primero debe desencriptar el archivo.")
+        message_label = QLabel(
+            "Para acceder al contenido, primero debe desencriptar el archivo."
+        )
         message_label.setWordWrap(True)
         message_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(message_label)
-        
+
         # Botón
         button_layout = QHBoxLayout()
         button_layout.addStretch()
-        
+
         ok_button = QPushButton("Entendido")
         ok_button.clicked.connect(self.accept)
         button_layout.addWidget(ok_button)
-        
+
         button_layout.addStretch()
         layout.addLayout(button_layout)
+
 
 class ModifyDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Modificar Elemento")
         self.setFixedSize(400, 400)
-        
+
         layout = QVBoxLayout(self)
-        
+
         # Campo para el código
         code_layout = QHBoxLayout()
         code_label = QLabel("Código:")
@@ -911,56 +1029,56 @@ class ModifyDialog(QDialog):
         code_layout.addWidget(code_label)
         code_layout.addWidget(self.code_input)
         layout.addLayout(code_layout)
-        
+
         # Botón para buscar
         search_button = QPushButton("Buscar")
         search_button.clicked.connect(self.search_item)
         layout.addWidget(search_button)
-        
+
         # Campos para modificar
         form_layout = QGridLayout()
-        
+
         service_label = QLabel("Servicio:")
         self.service_input = QLineEdit()
         form_layout.addWidget(service_label, 0, 0)
         form_layout.addWidget(self.service_input, 0, 1)
-        
+
         email_label = QLabel("Email:")
         self.email_input = QLineEdit()
         form_layout.addWidget(email_label, 1, 0)
         form_layout.addWidget(self.email_input, 1, 1)
-        
+
         password_label = QLabel("Contraseña:")
         self.password_input = QLineEdit()
         form_layout.addWidget(password_label, 2, 0)
         form_layout.addWidget(self.password_input, 2, 1)
-        
+
         username_label = QLabel("Usuario:")
         self.username_input = QLineEdit()
         form_layout.addWidget(username_label, 3, 0)
         form_layout.addWidget(self.username_input, 3, 1)
-        
+
         ref_label = QLabel("Referencia:")
         self.ref_input = QLineEdit()
         form_layout.addWidget(ref_label, 4, 0)
         form_layout.addWidget(self.ref_input, 4, 1)
-        
+
         layout.addLayout(form_layout)
-        
+
         # Botones
         button_layout = QHBoxLayout()
-        
+
         save_button = QPushButton("Guardar")
         save_button.setObjectName("Guardar")
         save_button.clicked.connect(self.accept)
         button_layout.addWidget(save_button)
-        
+
         cancel_button = QPushButton("Cancelar")
         cancel_button.clicked.connect(self.reject)
         button_layout.addWidget(cancel_button)
-        
+
         layout.addLayout(button_layout)
-        
+
         # Deshabilitar campos hasta que se busque un elemento
         self.service_input.setEnabled(False)
         self.email_input.setEnabled(False)
@@ -968,150 +1086,208 @@ class ModifyDialog(QDialog):
         self.username_input.setEnabled(False)
         self.ref_input.setEnabled(False)
         save_button.setEnabled(False)
-    
+
     def search_item(self):
         code = self.code_input.text().strip()
         if not code:
             QMessageBox.warning(self, "Error", "Ingrese un código para buscar")
             return
-        
+
         try:
-            with open(resource_path('Inventario.csv'), 'r', newline='') as file:
-                reader = csv.DictReader(file)
+            parent = self.parent()
+            rows = []
+
+            if (
+                parent
+                and getattr(parent, "working_in_memory", False)
+                and parent.datos_descifrados
+            ):
+                csv_data = StringIO(parent.datos_descifrados.decode())
+                reader = csv.DictReader(csv_data)
                 for row in reader:
-                    if row['codigo'] == code:
-                        # Habilitar campos
-                        self.service_input.setEnabled(True)
-                        self.email_input.setEnabled(True)
-                        self.password_input.setEnabled(True)
-                        self.username_input.setEnabled(True)
-                        self.ref_input.setEnabled(True)
-                        self.findChild(QPushButton, "Guardar").setEnabled(True)
-                        
-                        # Llenar campos
-                        self.service_input.setText(row['service'])
-                        self.email_input.setText(row['email'])
-                        self.password_input.setText(row['password'])
-                        self.username_input.setText(row['username'])
-                        self.ref_input.setText(row['web'])
-                        return
-            
-            QMessageBox.warning(self, "Error", "No se encontró ningún elemento con ese código")
-        
+                    rows.append(row)
+            else:
+                # Buscar en el archivo en disco
+                with open(resource_path("Inventario.csv"), "r", newline="") as file:
+                    reader = csv.DictReader(file)
+                    for row in reader:
+                        rows.append(row)
+
+            # Recorrer filas y llenar formulario si se encuentra
+            for row in rows:
+                if row.get("codigo") == code:
+                    self.service_input.setEnabled(True)
+                    self.email_input.setEnabled(True)
+                    self.password_input.setEnabled(True)
+                    self.username_input.setEnabled(True)
+                    self.ref_input.setEnabled(True)
+                    self.findChild(QPushButton, "Guardar").setEnabled(True)
+
+                    self.service_input.setText(row.get("service", ""))
+                    self.email_input.setText(row.get("email", ""))
+                    self.password_input.setText(row.get("password", ""))
+                    self.username_input.setText(row.get("username", ""))
+                    self.ref_input.setText(row.get("web", ""))
+                    return
+            # with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+
+            # reader = csv.DictReader(file)
+            # for row in reader:
+            #     if row['codigo'] == code:
+            #         # Habilitar campos
+            #         self.service_input.setEnabled(True)
+            #         self.email_input.setEnabled(True)
+            #         self.password_input.setEnabled(True)
+            #         self.username_input.setEnabled(True)
+            #         self.ref_input.setEnabled(True)
+            #         self.findChild(QPushButton, "Guardar").setEnabled(True)
+
+            #         # Llenar campos
+            #         self.service_input.setText(row['service'])
+            #         self.email_input.setText(row['email'])
+            #         self.password_input.setText(row['password'])
+            #         self.username_input.setText(row['username'])
+            #         self.ref_input.setText(row['web'])
+            #         return
+
+            QMessageBox.warning(
+                self, "Error", "No se encontró ningún elemento con ese código"
+            )
+
         except FileNotFoundError:
-            QMessageBox.warning(self, "Error", "No se encontró el archivo de inventario")
+            QMessageBox.warning(
+                self, "Error", "No se encontró el archivo de inventario"
+            )
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al buscar el elemento: {str(e)}")
+            QMessageBox.critical(
+                self, "Error", f"Error al buscar el elemento: {str(e)}"
+            )
+
 
 class AdatavisionMainWindow(QMainWindow):
     def __init__(self, username):
+        """Inicializa la ventana principal de la aplicación."""
         super().__init__()
+
+        # Atributos principales
         self.username = username
         self.last_used_password = None
         self.theme_manager = ThemeManager()
-        self.working_in_memory = False   # Si True, no escribimos CSV desencriptado en disco
-        self.datos_descifrados = None    # Contenido desencriptado en memoria (bytes)
+
+        # Configuración de memoria y datos
+        self.working_in_memory = (
+            False  # Si True, no escribimos CSV desencriptado en disco
+        )
+        self.datos_descifrados = None  # Contenido desencriptado en memoria (bytes)
+
+        # Inicializar UI y cargar datos
         self.initUI()
-        
-        # Cargar información inicial
         self.load_last_modified()
         self.load_temp_password()
         self.check_file_status()
-        
-        # Configurar el temporizador de inactividad
+
+        # Configurar temporizador de inactividad
         self.inactivity_timer = QTimer(self)
         self.inactivity_timer.timeout.connect(self.check_inactivity)
         self.inactivity_timer.start(300000)  # 5 minutos
         self.last_activity = datetime.now()
-    
+
     def initUI(self):
+        """Inicializa y configura la interfaz de usuario."""
+        # Configuración básica de la ventana
         self.setWindowTitle("Adatavision - Gestor de Contraseñas")
         self.setMinimumSize(1000, 600)
-        
-        # Aplicar el tema
         self.setStyleSheet(self.theme_manager.get_theme_style())
-        
-        # Widget central
+
+        # Configurar widget central y layout principal
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        
-        # Layout principal
         main_layout = QHBoxLayout(central_widget)
         main_layout.setSpacing(10)
         main_layout.setContentsMargins(10, 10, 10, 10)
-        
-        # Panel izquierdo (tabla y búsqueda)
-        left_panel = QWidget()
-        left_layout = QVBoxLayout(left_panel)
-        
-        # Barra de herramientas
+
+        # Configurar panel izquierdo
+        self._setup_left_panel(main_layout)
+
+        # Configurar barra de herramientas
+        self._setup_toolbar()
+
+    def _setup_toolbar(self):
+        """Configura la barra de herramientas."""
         toolbar = QToolBar()
         self.addToolBar(toolbar)
-        
-        # Acción para cambiar tema
-        theme_action = QAction("Cambiar Tema", self)
-        theme_action.triggered.connect(self.toggle_theme)
-        toolbar.addAction(theme_action)
-        
-        # Acción para exportar
-        export_action = QAction("Exportar", self)
-        export_action.triggered.connect(self.export_data)
-        toolbar.addAction(export_action)
-        
-        # Acción para importar
-        import_action = QAction("Importar", self)
-        import_action.triggered.connect(self.import_data)
-        toolbar.addAction(import_action)
-        
+
+        # Configurar acciones
+        actions = [
+            ("Cambiar Tema", self.toggle_theme),
+            ("Exportar", self.export_data),
+            ("Importar", self.import_data),
+        ]
+
+        for text, slot in actions:
+            action = QAction(text, self)
+            action.triggered.connect(slot)
+            toolbar.addAction(action)
+
+    def _setup_left_panel(self, main_layout):
+        """Configura el panel izquierdo con la tabla y búsqueda."""
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+        main_layout.addWidget(left_panel)
+
         # Barra de estado con estilo minimalista
         self.status_bar = self.statusBar()
-        self.status_bar.showMessage(f"Usuario: {self.username} | Bienvenido a Adatavision")
-        
+        self.status_bar.showMessage(
+            f"Usuario: {self.username} | Bienvenido a Adatavision"
+        )
+
         # Área de información con estilo minimalista
         info_frame = QFrame()
         info_frame.setFrameShape(QFrame.Shape.StyledPanel)
-        
+
         info_layout = QHBoxLayout(info_frame)
         info_layout.setSpacing(20)
-        
+
         # Modificación
         self.modification_label = QLabel("Última modificación: Cargando...")
         self.modification_label.setStyleSheet("font-weight: bold;")
         info_layout.addWidget(self.modification_label)
-        
+
         # Contraseña temporal
         self.temp_password_label = QLabel("Contraseña temporal: Cargando...")
-        self.temp_password_label.setStyleSheet("""
+        self.temp_password_label.setStyleSheet(
+            """
                 font-weight: bold;
             padding: 5px;
             border: 1px solid #404040;
             border-radius: 3px;
-        """)
+        """
+        )
         self.temp_password_label.setCursor(Qt.CursorShape.PointingHandCursor)
         self.temp_password_label.mousePressEvent = self.copy_temp_password
         info_layout.addWidget(self.temp_password_label)
-        
+
         # Estado del archivo
         self.file_status_label = QLabel("Estado del archivo: Cargando...")
         self.file_status_label.setStyleSheet("font-weight: bold;")
         info_layout.addWidget(self.file_status_label)
-        
+
         left_layout.addWidget(info_frame)
-        
+
         # Campo de búsqueda
         search_layout = QHBoxLayout()
         search_label = QLabel("Buscar:")
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Introduce texto para buscar...")
-        
+
         self.search_button = QPushButton("Buscar")
         self.search_button.clicked.connect(self.search_items)
-        
+
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.search_input)
         search_layout.addWidget(self.search_button)
         left_layout.addLayout(search_layout)
-        
+
         # Tabla de datos
         self.data_table = QTableWidget()
         self.data_table.setColumnCount(7)
@@ -1119,22 +1295,25 @@ class AdatavisionMainWindow(QMainWindow):
         self.data_table.horizontalHeader().setStretchLastSection(True)
         self.data_table.cellClicked.connect(self.copy_cell_content)
         left_layout.addWidget(self.data_table)
-        
+
         # Panel derecho (botones)
         right_panel = QWidget()
         right_panel.setFixedWidth(200)
-        right_panel.setStyleSheet("""
+        right_panel.setStyleSheet(
+            """
             QWidget {
                 background-color: rgba(26, 26, 26, 0);
                 border-radius: 4px;
             }
-        """)
+        """
+        )
         right_layout = QVBoxLayout(right_panel)
         right_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        
+
         # Botones principales
         self.refresh_button = QPushButton("Actualizar")
-        self.refresh_button.setStyleSheet("""
+        self.refresh_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: rgba(26, 26, 26, 0.95);
                 color: #00c3ff;
@@ -1151,12 +1330,14 @@ class AdatavisionMainWindow(QMainWindow):
                 border: 1px solid rgba(0, 195, 255, 0.4);
                 box-shadow: 0 0 20px rgba(0, 195, 255, 0.2);
             }
-        """)
+        """
+        )
         self.refresh_button.clicked.connect(self.load_inventory)
         right_layout.addWidget(self.refresh_button)
-        
+
         self.add_button = QPushButton("Agregar")
-        self.add_button.setStyleSheet("""
+        self.add_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: rgba(26, 26, 26, 0.95);
                 color: #00ff80;
@@ -1173,12 +1354,14 @@ class AdatavisionMainWindow(QMainWindow):
                 border: 1px solid rgba(0, 255, 128, 0.4);
                 box-shadow: 0 0 20px rgba(0, 255, 128, 0.2);
             }
-        """)
+        """
+        )
         self.add_button.clicked.connect(self.show_add_dialog)
         right_layout.addWidget(self.add_button)
-        
+
         self.modify_button = QPushButton("Modificar")
-        self.modify_button.setStyleSheet("""
+        self.modify_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: rgba(26, 26, 26, 0.95);
                 color: #ff00ff;
@@ -1195,13 +1378,15 @@ class AdatavisionMainWindow(QMainWindow):
                 border: 1px solid rgba(255, 0, 255, 0.4);
                 box-shadow: 0 0 20px rgba(255, 0, 255, 0.2);
             }
-        """)
+        """
+        )
         self.modify_button.clicked.connect(self.show_modify_dialog)
         right_layout.addWidget(self.modify_button)
-        
+
         # Botones de herramientas
         self.encrypt_button = QPushButton("Encriptar")
-        self.encrypt_button.setStyleSheet("""
+        self.encrypt_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: rgba(26, 26, 26, 0.95);
                 color: #ff0000;
@@ -1218,12 +1403,14 @@ class AdatavisionMainWindow(QMainWindow):
                 border: 1px solid rgba(255, 0, 0, 0.4);
                 box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
             }
-        """)
+        """
+        )
         self.encrypt_button.clicked.connect(self.encrypt_file)
         right_layout.addWidget(self.encrypt_button)
-        
+
         self.decrypt_button = QPushButton("Desencriptar")
-        self.decrypt_button.setStyleSheet("""
+        self.decrypt_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: rgba(26, 26, 26, 0.95);
                 color: #00ff80;
@@ -1240,12 +1427,14 @@ class AdatavisionMainWindow(QMainWindow):
                 border: 1px solid rgba(0, 255, 128, 0.4);
                 box-shadow: 0 0 20px rgba(0, 255, 128, 0.2);
             }
-        """)
+        """
+        )
         self.decrypt_button.clicked.connect(self.decrypt_file)
         right_layout.addWidget(self.decrypt_button)
-        
+
         self.generate_password_button = QPushButton("Generar Contraseñas")
-        self.generate_password_button.setStyleSheet("""
+        self.generate_password_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: rgba(26, 26, 26, 0.95);
                 color: #ff8000;
@@ -1262,12 +1451,14 @@ class AdatavisionMainWindow(QMainWindow):
                 border: 1px solid rgba(255, 128, 0, 0.4);
                 box-shadow: 0 0 20px rgba(255, 128, 0, 0.2);
             }
-        """)
+        """
+        )
         self.generate_password_button.clicked.connect(self.generate_passwords)
         right_layout.addWidget(self.generate_password_button)
-        
+
         self.generate_key_button = QPushButton("Generar Claves")
-        self.generate_key_button.setStyleSheet("""
+        self.generate_key_button.setStyleSheet(
+            """
             QPushButton {
                 background-color: rgba(26, 26, 26, 0.95);
                 color: #8000ff;
@@ -1284,150 +1475,166 @@ class AdatavisionMainWindow(QMainWindow):
                 border: 1px solid rgba(128, 0, 255, 0.4);
                 box-shadow: 0 0 20px rgba(128, 0, 255, 0.2);
             }
-        """)
+        """
+        )
         self.generate_key_button.clicked.connect(self.generate_keys)
         right_layout.addWidget(self.generate_key_button)
-        
+
         # Agregar los paneles al layout principal
         main_layout.addWidget(left_panel, stretch=7)
         main_layout.addWidget(right_panel, stretch=1)
-        
+
         # Barra de menú
         self.create_menu_bar()
-        
+
         # Accesos rápidos de teclado
         self.setup_shortcuts()
-    
+
     def toggle_theme(self):
         self.setStyleSheet(self.theme_manager.toggle_theme())
-    
+
     def check_inactivity(self):
         current_time = datetime.now()
         time_diff = (current_time - self.last_activity).total_seconds()
         if time_diff > 300:  # 5 minutos
-            reply = QMessageBox.question(self, 'Sesión Inactiva',
-                                       '¿Desea mantener la sesión activa?',
-                                       QMessageBox.Yes | QMessageBox.No)
+            reply = QMessageBox.question(
+                self,
+                "Sesión Inactiva",
+                "¿Desea mantener la sesión activa?",
+                QMessageBox.Yes | QMessageBox.No,
+            )
             if reply == QMessageBox.No:
                 self.close()
             else:
                 self.last_activity = current_time
-    
+
     def event(self, event):
         # Actualizar el tiempo de última actividad
         if event.type() in [event.Type.MouseButtonPress, event.Type.KeyPress]:
             self.last_activity = datetime.now()
         return super().event(event)
-    
+
     def export_data(self):
         try:
-            file_name, _ = QFileDialog.getSaveFileName(self, "Exportar Datos", "", "CSV Files (*.csv);;JSON Files (*.json)")
+            file_name, _ = QFileDialog.getSaveFileName(
+                self, "Exportar Datos", "", "CSV Files (*.csv);;JSON Files (*.json)"
+            )
             if file_name:
-                if file_name.endswith('.csv'):
+                if file_name.endswith(".csv"):
                     self.export_to_csv(file_name)
-                elif file_name.endswith('.json'):
+                elif file_name.endswith(".json"):
                     self.export_to_json(file_name)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al exportar datos: {str(e)}")
-    
+
     def export_to_csv(self, file_name):
         try:
-            with open(resource_path('Inventario.csv'), 'r', newline='') as source_file:
-                with open(file_name, 'w', newline='') as target_file:
+            with open(resource_path("Inventario.csv"), "r", newline="") as source_file:
+                with open(file_name, "w", newline="") as target_file:
                     target_file.write(source_file.read())
             QMessageBox.information(self, "Éxito", "Datos exportados correctamente")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al exportar a CSV: {str(e)}")
-    
+
     def export_to_json(self, file_name):
         try:
             import json
+
             data = []
-            with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+            with open(resource_path("Inventario.csv"), "r", newline="") as file:
                 reader = csv.DictReader(file)
                 for row in reader:
                     data.append(row)
-            
-            with open(file_name, 'w') as json_file:
+
+            with open(file_name, "w") as json_file:
                 json.dump(data, json_file, indent=4)
             QMessageBox.information(self, "Éxito", "Datos exportados correctamente")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al exportar a JSON: {str(e)}")
-    
+
     def import_data(self):
         try:
-            file_name, _ = QFileDialog.getOpenFileName(self, "Importar Datos", "", "CSV Files (*.csv);;JSON Files (*.json)")
+            file_name, _ = QFileDialog.getOpenFileName(
+                self, "Importar Datos", "", "CSV Files (*.csv);;JSON Files (*.json)"
+            )
             if file_name:
-                if file_name.endswith('.csv'):
+                if file_name.endswith(".csv"):
                     self.import_from_csv(file_name)
-                elif file_name.endswith('.json'):
+                elif file_name.endswith(".json"):
                     self.import_from_json(file_name)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al importar datos: {str(e)}")
-    
+
     def import_from_csv(self, file_name):
         try:
-            with open(file_name, 'r', newline='') as source_file:
-                with open(resource_path('Inventario.csv'), 'w', newline='') as target_file:
+            with open(file_name, "r", newline="") as source_file:
+                with open(
+                    resource_path("Inventario.csv"), "w", newline=""
+                ) as target_file:
                     target_file.write(source_file.read())
             self.load_inventory()
             QMessageBox.information(self, "Éxito", "Datos importados correctamente")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al importar desde CSV: {str(e)}")
-    
+            QMessageBox.critical(
+                self, "Error", f"Error al importar desde CSV: {str(e)}"
+            )
+
     def import_from_json(self, file_name):
         try:
             import json
-            with open(file_name, 'r') as json_file:
+
+            with open(file_name, "r") as json_file:
                 data = json.load(json_file)
-            
-            with open(resource_path('Inventario.csv'), 'w', newline='') as csv_file:
+
+            with open(resource_path("Inventario.csv"), "w", newline="") as csv_file:
                 writer = csv.DictWriter(csv_file, fieldnames=CSV_HEADERS)
                 writer.writeheader()
                 writer.writerows(data)
-            
+
             self.load_inventory()
             QMessageBox.information(self, "Éxito", "Datos importados correctamente")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al importar desde JSON: {str(e)}")
-    
+            QMessageBox.critical(
+                self, "Error", f"Error al importar desde JSON: {str(e)}"
+            )
+
     def create_menu_bar(self):
         menubar = self.menuBar()
-        
+
         # Menú Archivo
         file_menu = menubar.addMenu("Archivo")
-        
+
         refresh_action = file_menu.addAction("Actualizar")
         refresh_action.triggered.connect(self.load_inventory)
-        
+
         file_menu.addSeparator()
-        
+
         exit_action = file_menu.addAction("Salir")
         exit_action.triggered.connect(self.close)
-        
+
         # Menú Herramientas
         tools_menu = menubar.addMenu("Herramientas")
-        
+
         encrypt_action = tools_menu.addAction("Encriptar")
         encrypt_action.triggered.connect(self.encrypt_file)
-        
+
         decrypt_action = tools_menu.addAction("Desencriptar")
         decrypt_action.triggered.connect(self.decrypt_file)
-        
+
         tools_menu.addSeparator()
-        
+
         gen_pass_action = tools_menu.addAction("Generar Contraseñas")
         gen_pass_action.triggered.connect(self.generate_passwords)
-        
+
         gen_key_action = tools_menu.addAction("Generar Claves")
         gen_key_action.triggered.connect(self.generate_keys)
-        
+
         # Menú Ayuda
         help_menu = menubar.addMenu("Ayuda")
-        
+
         about_action = help_menu.addAction("Acerca de")
         about_action.triggered.connect(self.show_about)
-    
+
     def setup_shortcuts(self):
         # Accesos rápidos de teclado
         self.refresh_shortcut = QKeySequence("F5")
@@ -1442,9 +1649,6 @@ class AdatavisionMainWindow(QMainWindow):
         # self.close_shortcut = QShortcut(QKeySequence("Ctrl+D"), self)
         # self.close_shortcut.activated.connect(self.close)
 
-        
-         
-
     def load_last_modified(self):
         try:
             data = read_info_file()
@@ -1453,7 +1657,9 @@ class AdatavisionMainWindow(QMainWindow):
             try:
                 date_obj = datetime.strptime(last_modified, "%Y-%m-%d")
                 formatted_date = date_obj.strftime("%Y-%m-%d")
-                self.modification_label.setText(f"Última modificación: {formatted_date}")
+                self.modification_label.setText(
+                    f"Última modificación: {formatted_date}"
+                )
             except ValueError:
                 # Si hay un error al parsear la fecha, mostrar la fecha original
                 self.modification_label.setText(f"Última modificación: {last_modified}")
@@ -1461,7 +1667,6 @@ class AdatavisionMainWindow(QMainWindow):
             now = datetime.now().strftime("%Y-%m-%d")
             update_info_field(1, now)
             self.modification_label.setText(f"Última modificación: {now}")
-
 
     def load_temp_password(self):
         try:
@@ -1471,27 +1676,49 @@ class AdatavisionMainWindow(QMainWindow):
         except Exception as e:
             update_info_field(2, "No hay contraseña temporal")
             self.temp_password_label.setText(" No hay contraseña temporal")
-    
+
     def check_file_status(self):
         try:
             data = read_info_file()
             status = data[0]  # índice 0 para el estado
             if status == "encrypted":
                 self.file_status_label.setText("Estado del archivo: Encriptado")
-                self.file_status_label.setStyleSheet("color: #27AE60; font-weight: bold;")
+                self.file_status_label.setStyleSheet(
+                    "color: #27AE60; font-weight: bold;"
+                )
             elif status == "decrypted":
                 self.file_status_label.setText("Estado del archivo: Desencriptado")
-                self.file_status_label.setStyleSheet("color: #E74C3C; font-weight: bold;")
+                self.file_status_label.setStyleSheet(
+                    "color: #E74C3C; font-weight: bold;"
+                )
             else:
                 self.file_status_label.setText("Estado del archivo: Desconocido")
         except Exception as e:
             update_info_field(0, "decrypted")
             self.file_status_label.setText("Estado del archivo: Desencriptado")
             self.file_status_label.setStyleSheet("color: #E74C3C; font-weight: bold;")
-    
+
     def load_inventory(self):
         try:
-            # Verificar si el archivo está encriptado
+            # Si trabajamos en memoria
+            if self.working_in_memory and self.datos_descifrados:
+                self.data_table.setRowCount(0)
+                csv_data = StringIO(self.datos_descifrados.decode())
+                reader = csv.DictReader(csv_data)
+                for row in reader:
+                    current_row = self.data_table.rowCount()
+                    self.data_table.insertRow(current_row)
+                    for j, col in enumerate(CSV_HEADERS):
+                        item = QTableWidgetItem(str(row[col]))
+                        item.setFlags(
+                            item.flags() & ~Qt.ItemFlag.ItemIsEditable
+                            | Qt.ItemFlag.ItemIsSelectable
+                        )
+                        self.data_table.setItem(current_row, j, item)
+                self.data_table.resizeColumnsToContents()
+                return
+
+            # Verificar si el archivo está encriptado en disco
             data = read_info_file()
             status = data[0]  # índice 0 para el estado
             if status == "encrypted":
@@ -1499,10 +1726,10 @@ class AdatavisionMainWindow(QMainWindow):
                 dialog.exec()
                 self.data_table.setRowCount(0)
                 return
-            
+
             # Cargar datos con CSV nativo
             self.data_table.setRowCount(0)
-            with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+            with open(resource_path("Inventario.csv"), "r", newline="") as file:
                 reader = csv.DictReader(file)
                 for row in reader:
                     current_row = self.data_table.rowCount()
@@ -1510,45 +1737,51 @@ class AdatavisionMainWindow(QMainWindow):
                     for j, col in enumerate(CSV_HEADERS):
                         item = QTableWidgetItem(str(row[col]))
                         # Hacer que las celdas no sean editables pero sean seleccionables
-                        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                        item.setFlags(
+                            item.flags() & ~Qt.ItemFlag.ItemIsEditable
+                            | Qt.ItemFlag.ItemIsSelectable
+                        )
                         self.data_table.setItem(current_row, j, item)
-            
+
             self.data_table.resizeColumnsToContents()
             self.status_bar.showMessage("Inventario cargado correctamente", 3000)
-        
+
         except FileNotFoundError:
             # Crear el archivo si no existe
-            with open(resource_path('Inventario.csv'), 'w', newline='') as file:
+            with open(resource_path("Inventario.csv"), "w", newline="") as file:
                 writer = csv.writer(file)
                 writer.writerow(CSV_HEADERS)
             self.data_table.setRowCount(0)
-            self.status_bar.showMessage("Se creó un nuevo archivo de inventario vacío", 3000)
-        
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo cargar el inventario: {str(e)}")
-    
+            self.status_bar.showMessage(
+                "Se creó un nuevo archivo de inventario vacío", 3000
+            )
 
-    #modal agregar nuevo
+        except Exception as e:
+            QMessageBox.critical(
+                self, "Error", f"No se pudo cargar el inventario: {str(e)}"
+            )
+
+    # modal agregar nuevo
     def show_add_dialog(self):
         dialog = QDialog(self)
         dialog.setWindowTitle("Agregar Nuevo Elemento")
         dialog.setFixedSize(400, 300)
-        
+
         layout = QVBoxLayout(dialog)
-        
+
         form_layout = QGridLayout()
-        
+
         # Campos para agregar
         service_label = QLabel("Servicio:")
         self.service_input = QLineEdit()
         form_layout.addWidget(service_label, 0, 0)
         form_layout.addWidget(self.service_input, 0, 1)
-        
+
         email_label = QLabel("Email:")
         self.email_input = QLineEdit()
         form_layout.addWidget(email_label, 1, 0)
         form_layout.addWidget(self.email_input, 1, 1)
-        
+
         password_label = QLabel("Contraseña:")
         self.password_input = QLineEdit()
         form_layout.addWidget(password_label, 2, 0)
@@ -1557,13 +1790,16 @@ class AdatavisionMainWindow(QMainWindow):
         generate_password_button = QPushButton("Generar")
         generate_password_button.setToolTip("contraseña ")
         generate_password_button.setFixedWidth(10)
+
         def set_random_password():
             import string
             import random
+
             length = 10
             chars = string.ascii_letters + string.digits + "!@#$%^&*"
-            password = ''.join(random.choice(chars) for _ in range(length))
+            password = "".join(random.choice(chars) for _ in range(length))
             self.password_input.setText(password)
+
         generate_password_button.clicked.connect(set_random_password)
 
         password_input_layout = QHBoxLayout()
@@ -1571,35 +1807,147 @@ class AdatavisionMainWindow(QMainWindow):
         password_input_layout.addWidget(generate_password_button)
         form_layout.addLayout(password_input_layout, 2, 1)
         form_layout.addWidget(self.password_input, 2, 1)
-        
+
         username_label = QLabel("Usuario:")
         self.username_input = QLineEdit()
         form_layout.addWidget(username_label, 3, 0)
         form_layout.addWidget(self.username_input, 3, 1)
-        
+
         ref_label = QLabel("Referencia:")
         self.ref_input = QLineEdit()
         form_layout.addWidget(ref_label, 4, 0)
         form_layout.addWidget(self.ref_input, 4, 1)
-        
+
         layout.addLayout(form_layout)
-        
+
         # Botones
         button_layout = QHBoxLayout()
-        
+
         save_button = QPushButton("Guardar")
         save_button.clicked.connect(lambda: self.add_new_item(dialog))
         button_layout.addWidget(save_button)
-        
+
         cancel_button = QPushButton("Cancelar")
         cancel_button.clicked.connect(dialog.reject)
         button_layout.addWidget(cancel_button)
-        
+
         layout.addLayout(button_layout)
-        
+
         dialog.exec()
-    
-    def add_new_item(self, dialog=None):
+
+
+def add_new_item(self, dialog=None):
+    # Verificar el estado (si está encriptado en disco y NO estamos en memoria)
+    try:
+        data = read_info_file()
+        status = data[0]
+        if status == "encrypted" and not self.working_in_memory:
+            EncryptedFileDialog(self).exec()
+            return
+    except Exception:
+        update_info_field(0, "decrypted")
+
+    # Obtener valores de los campos
+    service = self.service_input.text().strip()
+    email = self.email_input.text().strip()
+    password = self.password_input.text().strip()
+    username = self.username_input.text().strip()
+    reference = self.ref_input.text().strip()
+
+    # Validar que no estén vacíos
+    if not all([service, email, password, username, reference]):
+        QMessageBox.warning(self, "Campos Vacíos", "Todos los campos son obligatorios")
+        return
+
+    # Leer filas existentes (desde memoria si aplica, si no desde archivo)
+    rows = []
+    try:
+        if self.working_in_memory and self.datos_descifrados:
+            csv_data = StringIO(self.datos_descifrados.decode())
+            reader = csv.DictReader(csv_data)
+            for row in reader:
+                rows.append(row)
+        else:
+            try:
+                with open(resource_path("Inventario.csv"), "r", newline="") as file:
+                    reader = csv.DictReader(file)
+                    for row in reader:
+                        rows.append(row)
+            except FileNotFoundError:
+                # no existe aún, seguiremos con rows vacío
+                pass
+    except Exception as e:
+        QMessageBox.critical(
+            self, "Error", f"No se pudo leer inventario para verificar duplicados: {e}"
+        )
+        return
+
+    # Generar código único (evitar duplicados)
+    from random import randint
+
+    existing_codes = {r.get("codigo") for r in rows if r.get("codigo") is not None}
+    attempt = 0
+    code = "".join(str(randint(0, 9)) for _ in range(4))
+    while code in existing_codes and attempt < 20:
+        code = "".join(str(randint(0, 9)) for _ in range(4))
+        attempt += 1
+    if code in existing_codes:
+        QMessageBox.warning(
+            self,
+            "Código Duplicado",
+            "Se generó un código duplicado. Intente nuevamente.",
+        )
+        return
+
+    today = str(date.today())
+    new_row = {
+        "codigo": code,
+        "service": service,
+        "email": email,
+        "password": password,
+        "username": username,
+        "web": reference,
+        "fecha": today,
+    }
+    rows.append(new_row)
+
+    try:
+        if self.working_in_memory and self.datos_descifrados is not None:
+            # Escribir la nueva tabla en memoria (bytes)
+            output = StringIO()
+            writer = csv.DictWriter(output, fieldnames=CSV_HEADERS)
+            writer.writeheader()
+            writer.writerows(rows)
+            self.datos_descifrados = output.getvalue().encode()
+        else:
+            # Modo archivo: usar append como antes (manteniendo compatibilidad)
+            with open(resource_path("Inventario.csv"), "a", newline="") as file:
+                file.write(
+                    f"\n{code},{service},{email},{password},{username},{reference},{today}"
+                )
+
+        # Actualizar la fecha de modificación
+        now = datetime.now().strftime("%Y-%m-%d")
+        update_info_field(1, now)
+
+        # Limpiar campos
+        self.service_input.clear()
+        self.email_input.clear()
+        self.password_input.clear()
+        self.username_input.clear()
+        self.ref_input.clear()
+
+        # Recargar inventario (load_inventory consultará memoria si corresponde)
+        self.load_inventory()
+        self.load_last_modified()
+
+        QMessageBox.information(self, "Éxito", "Elemento agregado correctamente")
+
+        if dialog:
+            dialog.accept()
+
+    except Exception as e:
+        QMessageBox.critical(self, "Error", f"No se pudo agregar el elemento: {str(e)}")
         # Verificar si el archivo está encriptado
         try:
             data = read_info_file()
@@ -1610,66 +1958,133 @@ class AdatavisionMainWindow(QMainWindow):
                 return
         except Exception as e:
             update_info_field(0, "decrypted")
-        
+
         # Obtener valores de los campos
         service = self.service_input.text().strip()
         email = self.email_input.text().strip()
         password = self.password_input.text().strip()
         username = self.username_input.text().strip()
         reference = self.ref_input.text().strip()
-        
+
         # Validar que no estén vacíos
         if not all([service, email, password, username, reference]):
-            QMessageBox.warning(self, "Campos Vacíos", "Todos los campos son obligatorios")
+            QMessageBox.warning(
+                self, "Campos Vacíos", "Todos los campos son obligatorios"
+            )
             return
-        
+
         # Generar código único
         from random import randint
-        code = ''.join(str(randint(0, 9)) for _ in range(4))
-        
+
+        code = "".join(str(randint(0, 9)) for _ in range(4))
+
         # Verificar si el código ya existe
         try:
-            with open(resource_path('Inventario.csv'), 'r') as file:
+            with open(resource_path("Inventario.csv"), "r") as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    if row['codigo'] == code:
-                        QMessageBox.warning(self, "Código Duplicado", 
-                                          "Se generó un código duplicado. Intente nuevamente.")
+                    if row["codigo"] == code:
+                        QMessageBox.warning(
+                            self,
+                            "Código Duplicado",
+                            "Se generó un código duplicado. Intente nuevamente.",
+                        )
                         return
         except FileNotFoundError:
             pass
-        
+
         # Agregar el nuevo elemento
         today = str(date.today())
-        
+
         try:
-            with open(resource_path('Inventario.csv'), 'a', newline='') as file:
-                file.write(f"\n{code},{service},{email},{password},{username},{reference},{today}")
-            
+            with open(resource_path("Inventario.csv"), "a", newline="") as file:
+                file.write(
+                    f"\n{code},{service},{email},{password},{username},{reference},{today}"
+                )
+
             # Actualizar la fecha de modificación
             now = datetime.now().strftime("%Y-%m-%d")
             update_info_field(1, now)
-            
+
             # Limpiar campos
             self.service_input.clear()
             self.email_input.clear()
             self.password_input.clear()
             self.username_input.clear()
             self.ref_input.clear()
-            
+
             # Recargar inventario
             self.load_inventory()
             self.load_last_modified()
-            
+
             QMessageBox.information(self, "Éxito", "Elemento agregado correctamente")
-            
+
             if dialog:
                 dialog.accept()
-        
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo agregar el elemento: {str(e)}")
-    
-    def search_items(self):
+            QMessageBox.critical(
+                self, "Error", f"No se pudo agregar el elemento: {str(e)}"
+            )
+
+
+def search_items(self):
+    # Si el archivo está encriptado y no estamos en memoria, bloquear búsqueda
+    try:
+        data = read_info_file()
+        status = data[0]
+        if status == "encrypted" and not self.working_in_memory:
+            EncryptedFileDialog(self).exec()
+            self.data_table.setRowCount(0)
+            return
+    except Exception:
+        update_info_field(0, "decrypted")
+
+    search_text = self.search_input.text().strip().lower()
+    if not search_text:
+        QMessageBox.warning(self, "Campo Vacío", "Ingrese un texto para buscar")
+        return
+
+    try:
+        self.data_table.setRowCount(0)
+        found_items = 0
+
+        # Obtener filas desde memoria o desde disco
+        rows = []
+        if self.working_in_memory and self.datos_descifrados:
+            csv_data = StringIO(self.datos_descifrados.decode())
+            reader = csv.DictReader(csv_data)
+            for row in reader:
+                rows.append(row)
+        else:
+            with open(resource_path("Inventario.csv"), "r", newline="") as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    rows.append(row)
+
+        for row in rows:
+            if any(search_text in str(row.get(col, "")).lower() for col in CSV_HEADERS):
+                current_row = self.data_table.rowCount()
+                self.data_table.insertRow(current_row)
+                for j, col in enumerate(CSV_HEADERS):
+                    item = QTableWidgetItem(str(row.get(col, "")))
+                    item.setFlags(
+                        item.flags() & ~Qt.ItemFlag.ItemIsEditable
+                        | Qt.ItemFlag.ItemIsSelectable
+                    )
+                    self.data_table.setItem(current_row, j, item)
+                found_items += 1
+
+        self.data_table.resizeColumnsToContents()
+        self.status_bar.showMessage(f"Se encontraron {found_items} resultados", 3000)
+
+    except FileNotFoundError:
+        QMessageBox.warning(self, "Error", "No se encontró el archivo de inventario")
+    except Exception as e:
+        QMessageBox.critical(
+            self, "Error", f"No se pudo realizar la búsqueda: {str(e)}"
+        )
+
         # Verificar si el archivo está encriptado
         try:
             data = read_info_file()
@@ -1681,18 +2096,18 @@ class AdatavisionMainWindow(QMainWindow):
                 return
         except Exception as e:
             update_info_field(0, "decrypted")
-        
+
         search_text = self.search_input.text().strip().lower()
-        
+
         if not search_text:
             QMessageBox.warning(self, "Campo Vacío", "Ingrese un texto para buscar")
             return
-        
+
         try:
             self.data_table.setRowCount(0)
             found_items = 0
-            
-            with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+
+            with open(resource_path("Inventario.csv"), "r", newline="") as file:
                 reader = csv.DictReader(file)
                 for row in reader:
                     # Buscar en todos los campos
@@ -1701,135 +2116,311 @@ class AdatavisionMainWindow(QMainWindow):
                         self.data_table.insertRow(current_row)
                         for j, col in enumerate(CSV_HEADERS):
                             item = QTableWidgetItem(str(row[col]))
-                            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                            item.setFlags(
+                                item.flags() & ~Qt.ItemFlag.ItemIsEditable
+                                | Qt.ItemFlag.ItemIsSelectable
+                            )
                             self.data_table.setItem(current_row, j, item)
                         found_items += 1
-            
+
             self.data_table.resizeColumnsToContents()
-            self.status_bar.showMessage(f"Se encontraron {found_items} resultados", 3000)
-        
+            self.status_bar.showMessage(
+                f"Se encontraron {found_items} resultados", 3000
+            )
+
         except FileNotFoundError:
-            QMessageBox.warning(self, "Error", "No se encontró el archivo de inventario")
-        
+            QMessageBox.warning(
+                self, "Error", "No se encontró el archivo de inventario"
+            )
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo realizar la búsqueda: {str(e)}")
-    
-    def encrypt_file(self):
+            QMessageBox.critical(
+                self, "Error", f"No se pudo realizar la búsqueda: {str(e)}"
+            )
+
+
+def encrypt_file(self):
+    # Verificar si el archivo ya está encriptado
+    try:
+        data = read_info_file()
+        status = data[0]
+        if status == "encrypted":
+            QMessageBox.warning(
+                self, "Archivo Encriptado", "El archivo ya está encriptado."
+            )
+            return
+    except Exception:
+        update_info_field(0, "decrypted")
+
+    # Pedir la clave para encriptar
+    dialog = PasswordDialog("encrypt", self)
+    if not dialog.exec():
+        return
+    password = dialog.password
+
+    # Generar clave a partir del usuario y contraseña
+    clave_base = self.username + password
+    clave_hash = hashlib.sha256(clave_base.encode()).digest()
+    clave_final = base64.urlsafe_b64encode(clave_hash[:32])
+
+    try:
+        # Si estamos en memoria, encriptar datos de memoria; sino, leer desde disco
+        if self.working_in_memory and self.datos_descifrados is not None:
+            datos_a_cifrar = self.datos_descifrados
+        else:
+            if not os.path.exists(resource_path("Inventario.csv")):
+                QMessageBox.warning(
+                    self,
+                    "Archivo No Encontrado",
+                    "El archivo Inventario.csv no existe.",
+                )
+                return
+            with open(resource_path("Inventario.csv"), "rb") as archivo:
+                datos_a_cifrar = archivo.read()
+
+        f = Fernet(clave_final)
+        datos_cifrados = f.encrypt(datos_a_cifrar)
+
+        # Sobreescribir archivo en disco con los bytes cifrados
+        with open(resource_path("Inventario.csv"), "wb") as encrypted_file:
+            encrypted_file.write(datos_cifrados)
+
+        # Actualizar estado e indicadores
+        update_info_field(0, "encrypted")
+        self.working_in_memory = False
+        self.datos_descifrados = None
+        self.check_file_status()
+        self.data_table.setRowCount(0)
+
+        QMessageBox.information(self, "Éxito", "El archivo se encriptó con éxito")
+
+    except Exception as e:
+        QMessageBox.critical(
+            self, "Error", f"No se pudo encriptar el archivo: {str(e)}"
+        )
         # Verificar si el archivo ya está encriptado
         try:
             data = read_info_file()
             status = data[0]  # índice 0 para el estado
             if status == "encrypted":
-                QMessageBox.warning(self, "Archivo Encriptado", 
-                                      "El archivo ya está encriptado.")
+                QMessageBox.warning(
+                    self, "Archivo Encriptado", "El archivo ya está encriptado."
+                )
                 return
         except Exception as e:
             update_info_field(0, "decrypted")
-        
+
         # Mostrar diálogo para ingresar contraseña
-        dialog = PasswordDialog('encrypt', self)
+        dialog = PasswordDialog("encrypt", self)
         if dialog.exec():
             password = dialog.password
-            
+
             # Generar clave a partir del usuario y contraseña
             clave_base = self.username + password
             clave_hash = hashlib.sha256(clave_base.encode()).digest()
             clave_final = base64.urlsafe_b64encode(clave_hash[:32])
-            
+
             try:
-                with open(resource_path('Inventario.csv'), 'rb') as archivo:
+                with open(resource_path("Inventario.csv"), "rb") as archivo:
                     datos = archivo.read()
                     f = Fernet(clave_final)
                     datos_cifrados = f.encrypt(datos)
-                
-                with open(resource_path('Inventario.csv'), 'wb') as encrypted_file:
+
+                with open(resource_path("Inventario.csv"), "wb") as encrypted_file:
                     encrypted_file.write(datos_cifrados)
-                
+
                 # Actualizar el estado
                 update_info_field(0, "encrypted")
-                
+
                 self.check_file_status()
                 self.data_table.setRowCount(0)
-                
-                QMessageBox.information(self, "Éxito", "El archivo se encriptó con éxito")
-            
+
+                QMessageBox.information(
+                    self, "Éxito", "El archivo se encriptó con éxito"
+                )
+
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"No se pudo encriptar el archivo: {str(e)}")
-    
+                QMessageBox.critical(
+                    self, "Error", f"No se pudo encriptar el archivo: {str(e)}"
+                )
+
     def decrypt_file(self):
         # Verificar si el archivo ya está desencriptado
         try:
             data = read_info_file()
             status = data[0]  # índice 0 para el estado
             if status == "decrypted":
-                QMessageBox.warning(self, "Archivo Desencriptado", 
-                                      "El archivo ya está desencriptado.")
+                QMessageBox.warning(
+                    self, "Archivo Desencriptado", "El archivo ya está desencriptado."
+                )
                 return
         except Exception as e:
             update_info_field(0, "encrypted")
-        
+
         # Mostrar diálogo para ingresar contraseña
-        dialog = PasswordDialog('decrypt', self)
+        dialog = PasswordDialog("decrypt", self)
         if dialog.exec():
             password = dialog.password
-            
+
             # Guardar la contraseña para uso posterior
             self.last_used_password = password
-            
+
             # Generar clave a partir del usuario y contraseña
             clave_base = self.username + password
             clave_hash = hashlib.sha256(clave_base.encode()).digest()
             clave_final = base64.urlsafe_b64encode(clave_hash[:32])
-            
+
             try:
                 # Desencriptar el archivo
-                if not os.path.exists(resource_path('Inventario.csv')):
-                    QMessageBox.warning(self, "Archivo No Encontrado", 
-                                      "El archivo Inventario.csv no existe.")
+                if not os.path.exists(resource_path("Inventario.csv")):
+                    QMessageBox.warning(
+                        self,
+                        "Archivo No Encontrado",
+                        "El archivo Inventario.csv no existe.",
+                    )
                     return
-                
+
                 # with open(resource_path('Inventario.csv'), 'rb') as archivo:
                 #     datos_cifrados = archivo.read()
                 #     f = Fernet(clave_final)
                 #     datos_descifrados = f.decrypt(datos_cifrados)
-        # Leer y desencriptar en memoria
-                with open(resource_path('Inventario.csv'), 'rb') as archivo:
+                # Leer y desencriptar en memoria
+                with open(resource_path("Inventario.csv"), "rb") as archivo:
                     datos_cifrados = archivo.read()
                     f = Fernet(clave_final)
                     self.datos_descifrados = f.decrypt(datos_cifrados)
 
                 self.working_in_memory = True
-                 # Mostrar datos desde memoria
+                # Mostrar datos desde memoria
                 self.mostrar_datos_temporales()
 
-                
-                #Guarda el archivo desencriptado
+                # Guarda el archivo desencriptado
                 # with open(resource_path('Inventario.csv'), 'wb') as decrypted_file:
                 #     decrypted_file.write(datos_descifrados)
-                
+
                 # Actualizar el estado
                 update_info_field(0, "decrypted")
-                
+
                 self.check_file_status()
                 self.load_inventory()
-                
+
                 # QMessageBox.information(self, "Éxito", "El archivo se desencriptó con éxito")
-                self.status_bar.showMessage("Datos desencriptados en memoria. No se guardarán en disco sin cifrar.", 10000)
-            
+                self.status_bar.showMessage(
+                    "Datos desencriptados en memoria. No se guardarán en disco sin cifrar.",
+                    10000,
+                )
+
             except Exception as e:
-                QMessageBox.critical(self, "Error", "No se pudo desencriptar el archivo. Verifique la contraseña.")
-    
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "No se pudo desencriptar el archivo. Verifique la contraseña.",
+                )
+
     def generate_passwords(self):
         dialog = PasswordGeneratorDialog(self)
         if dialog.exec():
             self.load_temp_password()
-    
+
     def generate_keys(self):
         dialog = KeyGeneratorDialog(self)
         dialog.exec()
         self.check_file_status()
-    
-    def show_modify_dialog(self):
+
+
+def show_modify_dialog(self):
+    # Verificar si el archivo está encriptado
+    try:
+        data = read_info_file()
+        status = data[0]  # índice 0 para el estado
+        if status == "encrypted":
+            EncryptedFileDialog(self).exec()
+            return
+    except Exception:
+        update_info_field(0, "decrypted")
+
+    dialog = ModifyDialog(self)
+    if dialog.exec():
+        # Obtener valores de los campos
+        code = dialog.code_input.text().strip()
+        service = dialog.service_input.text().strip()
+        email = dialog.email_input.text().strip()
+        password = dialog.password_input.text().strip()
+        username = dialog.username_input.text().strip()
+        reference = dialog.ref_input.text().strip()
+
+        # Validar que no estén vacíos
+        if not all([service, email, password, username, reference]):
+            QMessageBox.warning(
+                self, "Campos Vacíos", "Todos los campos son obligatorios"
+            )
+            return
+
+        try:
+            # Leer todas las filas (desde memoria si aplica, si no desde archivo)
+            rows = []
+            if self.working_in_memory and self.datos_descifrados:
+                csv_data = StringIO(self.datos_descifrados.decode())
+                reader = csv.DictReader(csv_data)
+                for row in reader:
+                    rows.append(row)
+            else:
+                # Si no hay archivo, avisar
+                with open(resource_path("Inventario.csv"), "r", newline="") as file:
+                    reader = csv.DictReader(file)
+                    for row in reader:
+                        rows.append(row)
+
+            # Buscar y modificar la fila correspondiente
+            found = False
+            for row in rows:
+                if row.get("codigo") == code:
+                    row["service"] = service
+                    row["email"] = email
+                    row["password"] = password
+                    row["username"] = username
+                    row["web"] = reference
+                    row["fecha"] = str(date.today())
+                    found = True
+                    break
+
+            if not found:
+                QMessageBox.warning(
+                    self, "Error", "No se encontró el elemento con ese código"
+                )
+                return
+
+            # Guardar cambios: en memoria o en archivo
+            if self.working_in_memory and self.datos_descifrados is not None:
+                output = StringIO()
+                writer = csv.DictWriter(output, fieldnames=CSV_HEADERS)
+                writer.writeheader()
+                writer.writerows(rows)
+                self.datos_descifrados = output.getvalue().encode()
+            else:
+                with open(resource_path("Inventario.csv"), "w", newline="") as file:
+                    writer = csv.DictWriter(file, fieldnames=CSV_HEADERS)
+                    writer.writeheader()
+                    writer.writerows(rows)
+
+            # Actualizar la fecha de modificación
+            now = datetime.now().strftime("%Y-%m-%d")
+            update_info_field(1, now)
+
+            # Recargar inventario (leerá desde memoria si aplica)
+            self.load_inventory()
+            self.load_last_modified()
+
+            QMessageBox.information(self, "Éxito", "Elemento modificado correctamente")
+
+        except FileNotFoundError:
+            QMessageBox.warning(
+                self, "Error", "No se encontró el archivo de inventario"
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self, "Error", f"No se pudo modificar el elemento: {str(e)}"
+            )
         # Verificar si el archivo está encriptado
         try:
             data = read_info_file()
@@ -1840,7 +2431,7 @@ class AdatavisionMainWindow(QMainWindow):
                 return
         except Exception as e:
             update_info_field(0, "decrypted")
-        
+
         dialog = ModifyDialog(self)
         if dialog.exec():
             # Obtener valores de los campos
@@ -1850,130 +2441,158 @@ class AdatavisionMainWindow(QMainWindow):
             password = dialog.password_input.text().strip()
             username = dialog.username_input.text().strip()
             reference = dialog.ref_input.text().strip()
-            
+
             # Validar que no estén vacíos
             if not all([service, email, password, username, reference]):
-                QMessageBox.warning(self, "Campos Vacíos", "Todos los campos son obligatorios")
+                QMessageBox.warning(
+                    self, "Campos Vacíos", "Todos los campos son obligatorios"
+                )
                 return
-            
+
             try:
                 # Leer todo el archivo
                 rows = []
-                with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+                with open(resource_path("Inventario.csv"), "r", newline="") as file:
                     reader = csv.DictReader(file)
                     for row in reader:
-                        if row['codigo'] == code:
+                        if row["codigo"] == code:
                             # Actualizar la fila encontrada
-                            row['service'] = service
-                            row['email'] = email
-                            row['password'] = password
-                            row['username'] = username
-                            row['web'] = reference
-                            row['fecha'] = str(date.today())
+                            row["service"] = service
+                            row["email"] = email
+                            row["password"] = password
+                            row["username"] = username
+                            row["web"] = reference
+                            row["fecha"] = str(date.today())
                         rows.append(row)
-                
+
                 # Escribir todo el archivo de nuevo
-                with open(resource_path('Inventario.csv'), 'w', newline='') as file:
+                with open(resource_path("Inventario.csv"), "w", newline="") as file:
                     writer = csv.DictWriter(file, fieldnames=CSV_HEADERS)
                     writer.writeheader()
                     writer.writerows(rows)
-                
+
                 # Actualizar la fecha de modificación
                 now = datetime.now().strftime("%Y-%m-%d")
                 update_info_field(1, now)
-                
+
                 # Recargar inventario
                 self.load_inventory()
                 self.load_last_modified()
-                
-                QMessageBox.information(self, "Éxito", "Elemento modificado correctamente")
-            
+
+                QMessageBox.information(
+                    self, "Éxito", "Elemento modificado correctamente"
+                )
+
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"No se pudo modificar el elemento: {str(e)}")
-    
-    def show_about(self):
-        about_text = """
+                QMessageBox.critical(
+                    self, "Error", f"No se pudo modificar el elemento: {str(e)}"
+                )
+
+
+def show_about(self):
+    about_text = """
         <h2>Adatavision</h2>
         <p>Gestor de Contraseñas Seguro</p>
         <p>Versión: 3.0</p>
         <p>Esta aplicación permite almacenar y gestionar contraseñas de forma segura.</p>
         <p>Desarrollado con PySide6.</p>
         """
-        QMessageBox.about(self, "Acerca de Adatavision", about_text)
-    
-    def closeEvent(self, event):
-        try:
-            # Verificar el estado actual del archivo
-            data = read_info_file()
-            current_status = data[0]  # índice 0 para el estado
-            
-            # Si está desencriptado y tenemos las credenciales, intentar encriptar
-            if current_status == "decrypted" and self.last_used_password is not None:
-                # Generar clave de encriptación con las credenciales guardadas
-                clave_base = self.username + self.last_used_password
-                clave_hash = hashlib.sha256(clave_base.encode()).digest()
-                clave_final = base64.urlsafe_b64encode(clave_hash[:32])
-                
-                try:
-                    # Encriptar el archivo
-                    with open(resource_path('Inventario.csv'), 'rb') as archivo:
-                        datos = archivo.read()
-                        f = Fernet(clave_final)
-                        datos_cifrados = f.encrypt(datos)
-                    
-                    with open(resource_path('Inventario.csv'), 'wb') as encrypted_file:
-                        encrypted_file.write(datos_cifrados)
-                    
-                    # Actualizar el estado
-                    update_info_field(0, "encrypted")
-                    
-                    QMessageBox.information(self, "Éxito", "Archivo encriptado automáticamente")
-                except Exception as e:
-                    QMessageBox.warning(self, "Error", 
-                                      f"No se pudo encriptar el archivo automáticamente: {str(e)}")
-            elif current_status == "decrypted":
-                QMessageBox.warning(self, "Advertencia", 
-                                  "El archivo está desencriptado pero no hay credenciales guardadas para encriptar automáticamente")
-            elif current_status != "encrypted":
-                QMessageBox.warning(self, "Inconsistencia", 
-                                  "El estado del archivo es inconsistente. Por favor, verifique manualmente.")
-        
-        except FileNotFoundError:
-            QMessageBox.warning(self, "Advertencia", 
-                              "No se pudo verificar el estado del archivo")
-        
-        event.accept()
+    QMessageBox.about(self, "Acerca de Adatavision", about_text)
 
-    def copy_temp_password(self, event):
-        try:
-            data = read_info_file()
-            temp_password = data[2]  # índice 2 para la contraseña temporal
-            if temp_password != "No hay contraseña temporal":
-                QApplication.clipboard().setText(temp_password)
-                self.status_bar.showMessage("Contraseña temporal copiada al portapapeles", 2000)
-            else:
-                self.status_bar.showMessage("No hay contraseña temporal para copiar", 2000)
-        except Exception as e:
+
+def closeEvent(self, event):
+    try:
+        # Leer estado actual
+        data = read_info_file()
+        current_status = data[0]
+
+        # Si hay datos desencriptados en memoria y tenemos la contraseña última, encriptar desde memoria
+        if (
+            self.working_in_memory and self.datos_descifrados is not None
+        ) and self.last_used_password is not None:
+            clave_base = self.username + self.last_used_password
+            clave_hash = hashlib.sha256(clave_base.encode()).digest()
+            clave_final = base64.urlsafe_b64encode(clave_hash[:32])
+
+            try:
+                f = Fernet(clave_final)
+                datos_cifrados = f.encrypt(self.datos_descifrados)
+
+                with open(resource_path("Inventario.csv"), "wb") as encrypted_file:
+                    encrypted_file.write(datos_cifrados)
+
+                update_info_field(0, "encrypted")
+                self.working_in_memory = False
+                self.datos_descifrados = None
+
+                QMessageBox.information(
+                    self, "Éxito", "Archivo encriptado automáticamente"
+                )
+            except Exception as e:
+                QMessageBox.warning(
+                    self,
+                    "Error",
+                    f"No se pudo encriptar el archivo automáticamente: {str(e)}",
+                )
+
+        # Si el archivo se marca 'decrypted' en info.txt pero no hay credenciales guardadas
+        elif current_status == "decrypted" and self.last_used_password is None:
+            QMessageBox.warning(
+                self,
+                "Advertencia",
+                "El archivo está desencriptado pero no hay credenciales guardadas para encriptar automáticamente",
+            )
+
+        elif current_status != "encrypted" and not self.working_in_memory:
+            QMessageBox.warning(
+                self,
+                "Inconsistencia",
+                "El estado del archivo es inconsistente. Por favor, verifique manualmente.",
+            )
+
+    except FileNotFoundError:
+        QMessageBox.warning(
+            self, "Advertencia", "No se pudo verificar el estado del archivo"
+        )
+
+
+# event.accept()
+
+
+def copy_temp_password(self, event):
+    try:
+        data = read_info_file()
+        temp_password = data[2]  # índice 2 para la contraseña temporal
+        if temp_password != "No hay contraseña temporal":
+            QApplication.clipboard().setText(temp_password)
+            self.status_bar.showMessage(
+                "Contraseña temporal copiada al portapapeles", 2000
+            )
+        else:
             self.status_bar.showMessage("No hay contraseña temporal para copiar", 2000)
+    except Exception as e:
+        self.status_bar.showMessage("No hay contraseña temporal para copiar", 2000)
 
-    def copy_cell_content(self, row, column):
-        item = self.data_table.item(row, column)
-        if item is not None:
-            content = item.text()
-            QApplication.clipboard().setText(content)
-            self.status_bar.showMessage(f"Contenido copiado: {content}", 2000)
+
+def copy_cell_content(self, row, column):
+    item = self.data_table.item(row, column)
+    if item is not None:
+        content = item.text()
+        QApplication.clipboard().setText(content)
+        self.status_bar.showMessage(f"Contenido copiado: {content}", 2000)
+
 
 def main():
     app = QApplication(sys.argv)
-    app.setStyle('Fusion')
-    
+    app.setStyle("Fusion")
+
     # Mostrar splash screen
     splash = SplashScreen()
     splash.show()
-    
+
     # Procesar eventos para mostrar el splash
     app.processEvents()
-    
+
     # Mostrar diálogo de login
     login_dialog = LoginDialog()
     if login_dialog.exec():
@@ -1984,6 +2603,7 @@ def main():
         return app.exec()
     else:
         return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
