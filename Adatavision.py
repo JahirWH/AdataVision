@@ -16,11 +16,11 @@ def resource_path(relative_path):
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                               QHBoxLayout, QPushButton, QLineEdit, QLabel, 
                               QTableWidget, QTableWidgetItem, QMessageBox, 
-                               QGridLayout, QComboBox, QDialog,
-                              QFileDialog, QFrame, 
-                               QSplashScreen, QToolBar )
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import  QPixmap, QKeySequence, QAction
+                              QTabWidget, QGridLayout, QComboBox, QDialog,
+                              QFileDialog, QProgressBar, QFrame, QStackedWidget,
+                              QScrollArea, QSplashScreen, QToolBar, QStatusBar)
+from PySide6.QtCore import Qt, QTimer, Signal, Slot, QSize, QPropertyAnimation, QEasingCurve
+from PySide6.QtGui import QFont, QPixmap, QPalette, QIcon, QKeySequence, QAction
 from cryptography.fernet import Fernet
 
 
@@ -698,7 +698,7 @@ class KeyGeneratorDialog(QDialog):
         """)
         self.generate_button.clicked.connect(self.generate_key)
         
-        self.save_button = QPushButton("Guresultadosardar")
+        self.save_button = QPushButton("Guardar")
         self.save_button.setEnabled(False)
         self.save_button.setStyleSheet("""
             QPushButton {
@@ -1009,8 +1009,6 @@ class AdatavisionMainWindow(QMainWindow):
         self.username = username
         self.last_used_password = None
         self.theme_manager = ThemeManager()
-        self.working_in_memory = False   # Si True, no escribimos CSV desencriptado en disco
-        self.datos_descifrados = None    # Contenido desencriptado en memoria (bytes)
         self.initUI()
         
         # Cargar información inicial
@@ -1432,18 +1430,13 @@ class AdatavisionMainWindow(QMainWindow):
         # Accesos rápidos de teclado
         self.refresh_shortcut = QKeySequence("F5")
         self.refresh_button.setShortcut(self.refresh_shortcut)
-
+        
         self.search_shortcut = QKeySequence("Ctrl+F")
         self.search_button.setShortcut(self.search_shortcut)
-
+        
         self.add_shortcut = QKeySequence("Ctrl+N")
         self.add_button.setShortcut(self.add_shortcut)
-
-        # self.close_shortcut = QShortcut(QKeySequence("Ctrl+D"), self)
-        # self.close_shortcut.activated.connect(self.close)
-
-        
-         
+    
 
     def load_last_modified(self):
         try:
@@ -1782,30 +1775,13 @@ class AdatavisionMainWindow(QMainWindow):
             clave_final = base64.urlsafe_b64encode(clave_hash[:32])
             
             try:
-                # Desencriptar el archivo
-                if not os.path.exists(resource_path('Inventario.csv')):
-                    QMessageBox.warning(self, "Archivo No Encontrado", 
-                                      "El archivo Inventario.csv no existe.")
-                    return
-                
-                # with open(resource_path('Inventario.csv'), 'rb') as archivo:
-                #     datos_cifrados = archivo.read()
-                #     f = Fernet(clave_final)
-                #     datos_descifrados = f.decrypt(datos_cifrados)
-        # Leer y desencriptar en memoria
                 with open(resource_path('Inventario.csv'), 'rb') as archivo:
                     datos_cifrados = archivo.read()
                     f = Fernet(clave_final)
-                    self.datos_descifrados = f.decrypt(datos_cifrados)
-
-                self.working_in_memory = True
-                 # Mostrar datos desde memoria
-                self.mostrar_datos_temporales()
-
+                    datos_descifrados = f.decrypt(datos_cifrados)
                 
-                #Guarda el archivo desencriptado
-                # with open(resource_path('Inventario.csv'), 'wb') as decrypted_file:
-                #     decrypted_file.write(datos_descifrados)
+                with open(resource_path('Inventario.csv'), 'wb') as decrypted_file:
+                    decrypted_file.write(datos_descifrados)
                 
                 # Actualizar el estado
                 update_info_field(0, "decrypted")
@@ -1813,8 +1789,7 @@ class AdatavisionMainWindow(QMainWindow):
                 self.check_file_status()
                 self.load_inventory()
                 
-                # QMessageBox.information(self, "Éxito", "El archivo se desencriptó con éxito")
-                self.status_bar.showMessage("Datos desencriptados en memoria. No se guardarán en disco sin cifrar.", 10000)
+                QMessageBox.information(self, "Éxito", "El archivo se desencriptó con éxito")
             
             except Exception as e:
                 QMessageBox.critical(self, "Error", "No se pudo desencriptar el archivo. Verifique la contraseña.")
