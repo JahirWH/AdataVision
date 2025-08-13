@@ -1,41 +1,47 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
 name: Python application
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main, master]
   pull_request:
-    branches: [ "main" ]
-
-permissions:
-  contents: read
+    branches: [main, master]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
-    
+      - uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest pytest-mock
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    - name: Run tests
-      run: |
-        pytest -v --tb=short
-        
-    - name: Check Python syntax
-      run: |
-        python -m py_compile *.py
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb  # Para tests que requieran display
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-mock
+          # Instalar dependencias básicas para tu app
+          pip install PySide6 cryptography
+          # Instalar desde requirements.txt si existe
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+
+      - name: Run tests
+        env:
+          CI: true # Variable para saltar tests de GUI
+          DISPLAY: ":99.0" # Display virtual para tests
+        run: |
+          # Ejecutar tests con display virtual
+          xvfb-run -a pytest -v --tb=short
+
+      - name: Check Python syntax
+        run: |
+          # Verificar sintaxis de archivos Python
+          find . -name "*.py" -exec python -m py_compile {} \;
