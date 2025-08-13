@@ -8,6 +8,7 @@ import tempfile
 import csv
 from unittest.mock import patch, MagicMock
 from datetime import date, datetime
+from unittest import mock
 
 def test_basic_imports():
     """Test para verificar que todas las librerías básicas se importan correctamente"""
@@ -56,15 +57,18 @@ def test_resource_path_function():
     assert isinstance(result, str)
     assert "test_file.txt" in result
 
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 def test_resource_path_with_meipass():
     """Test para resource_path cuando existe _MEIPASS (PyInstaller)"""
-    def resource_path(relative_path):
-        try:
-            base_path = sys._MEIPASS
-        except AttributeError:
-            base_path = os.path.abspath(".")
-        return os.path.join(base_path, relative_path)
-    
+    with mock.patch.object(sys, '_MEIPASS', '/tmp/fake_meipass', create=True):
+        resultado = resource_path('archivo.txt')
+        assert resultado == os.path.join('/tmp/fake_meipass', 'archivo.txt')
     # Simulamos que _MEIPASS existe
     with patch.object(sys, '_MEIPASS', '/tmp/pyinstaller'):
         result = resource_path("icon.png")
