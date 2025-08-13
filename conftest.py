@@ -34,15 +34,23 @@ def pytest_collection_modifyitems(config, items):
 def qapp():
     """Fixture para QApplication en tests"""
     if os.environ.get('CI') == 'true':
-        # En CI, usar modo offscreen
+        # En CI, configurar Qt para modo offscreen
         os.environ['QT_QPA_PLATFORM'] = 'offscreen'
+        os.environ['QT_DEBUG_PLUGINS'] = '1'
+        os.environ['DISPLAY'] = ':99.0'
     
     try:
         from PySide6.QtWidgets import QApplication
+        from PySide6.QtCore import QCoreApplication
+        
+        # Verificar si ya existe una instancia
         app = QApplication.instance()
         if app is None:
+            # Crear nueva instancia con argumentos mínimos
             app = QApplication([])
+        
         yield app
+        
     except ImportError:
         pytest.skip("PySide6 not available")
     except Exception as e:
@@ -63,4 +71,15 @@ def temp_file():
     try:
         os.unlink(temp_path)
     except OSError:
-        pass 
+        pass
+
+@pytest.fixture(autouse=True)
+def setup_qt_environment():
+    """Configurar entorno de Qt automáticamente"""
+    if os.environ.get('CI') == 'true':
+        # Configuraciones específicas para CI
+        os.environ['QT_QPA_PLATFORM'] = 'offscreen'
+        os.environ['QT_DEBUG_PLUGINS'] = '1'
+        os.environ['DISPLAY'] = ':99.0'
+        # Evitar problemas con OpenGL
+        os.environ['QT_OPENGL'] = 'software' 

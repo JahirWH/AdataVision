@@ -24,7 +24,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb libglib2.0-0 libxrender1 libxtst6 libxi6
+          sudo apt-get install -y xvfb libglib2.0-0 libxrender1 libxtst6 libxi6 libegl1 libgl1-mesa-dri mesa-utils
 
       - name: Cache pip dependencies
         uses: actions/cache@v3
@@ -40,18 +40,23 @@ jobs:
           pip install -r requirements.txt
           if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
 
-      - name: Run tests with virtual display
+      - name: Setup virtual display and run tests
         env:
           CI: true
           DISPLAY: ":99.0"
           QT_QPA_PLATFORM: "offscreen"
+          QT_DEBUG_PLUGINS: "1"
+          QT_OPENGL: "software"
         run: |
           # Start virtual display
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          sleep 2
+          sleep 3
           
-          # Run tests
-          pytest -v --tb=short --strict-markers -m "not gui"
+          # Verify display is working
+          xdpyinfo -display :99 || echo "Display setup failed, continuing anyway..."
+          
+          # Run tests excluding GUI tests
+          pytest -v --tb=short --strict-markers -m "not gui" --maxfail=5
 
       - name: Check Python syntax
         run: |

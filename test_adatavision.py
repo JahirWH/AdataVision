@@ -154,7 +154,7 @@ def test_cryptography_fernet():
     except ImportError:
         pytest.skip("cryptography no disponible")
 
-@pytest.mark.skipif(os.environ.get('CI') == 'true', reason="Skip GUI tests in CI")
+@pytest.mark.gui
 def test_pyside6_qapplication():
     """Test para verificar que QApplication puede inicializarse"""
     try:
