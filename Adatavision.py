@@ -1485,6 +1485,7 @@ class AdatavisionMainWindow(QMainWindow):
             self.file_status_label.setStyleSheet("color: #E74C3C; font-weight: bold;")
     
     def load_inventory(self):
+        
         try:
             # Verificar si el archivo está encriptado
             data = read_info_file()
@@ -1509,7 +1510,8 @@ class AdatavisionMainWindow(QMainWindow):
                         # Hacer que las celdas no sean editables pero sean seleccionables
                         item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
                         self.data_table.setItem(current_row, j, item)
-                        
+                        print(f"Row {current_row}, Column {j}: {row[col]}")
+                        print("Inventario cargado correctamente")
                         
                         
             
