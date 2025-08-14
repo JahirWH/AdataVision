@@ -45,6 +45,8 @@ def read_info_file():
         default_data = ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
         write_info_file(default_data)
         return default_data
+    
+    
 
 def write_info_file(data):
     """Escribe datos al archivo info.txt"""
@@ -1493,10 +1495,12 @@ class AdatavisionMainWindow(QMainWindow):
                 self.data_table.setRowCount(0)
                 return
             
+            
             # Cargar datos con CSV nativo
             self.data_table.setRowCount(0)
             with open(resource_path('Inventario.csv'), 'r', newline='') as file:
                 reader = csv.DictReader(file)
+                
                 for row in reader:
                     current_row = self.data_table.rowCount()
                     self.data_table.insertRow(current_row)
@@ -1505,6 +1509,9 @@ class AdatavisionMainWindow(QMainWindow):
                         # Hacer que las celdas no sean editables pero sean seleccionables
                         item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
                         self.data_table.setItem(current_row, j, item)
+                        
+                        
+                        
             
             self.data_table.resizeColumnsToContents()
             self.status_bar.showMessage("Inventario cargado correctamente", 3000)
@@ -1520,6 +1527,43 @@ class AdatavisionMainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo cargar el inventario: {str(e)}")
     
+    
+            #CArga el archivo y guardalo en un string
+        file_path = resource_path('Inventario.csv')
+        with open(file_path, 'r', newline='', encoding='utf-8') as file:
+            self.csv_data = file.read()  # Guardar como string en memoria
+            
+        self.load_data_from_string()
+    
+    def load_data_from_string(self):
+        """Carga los datos desde el string CSV almacenado en memoria"""
+        print("Cargando datos desde el string CSV...")
+        try:
+            # Limpiar la tabla
+            self.data_table.setRowCount(0)
+            
+            # Crear un StringIO para usar csv.DictReader con el string
+            from io import StringIO
+            csv_string_io = StringIO(self.csv_data)
+            reader = csv.DictReader(csv_string_io)
+            
+            for row in reader:
+                current_row = self.data_table.rowCount()
+                self.data_table.insertRow(current_row)
+                
+                for j, col in enumerate(CSV_HEADERS):
+                    item = QTableWidgetItem(str(row.get(col, '')))
+                    # Hacer que las celdas no sean editables pero sean seleccionables
+                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                    self.data_table.setItem(current_row, j, item)
+                    
+        except Exception as e:
+            self.status_bar.showMessage(f"Error al parsear datos CSV: {str(e)}", 5000)
+
+
+            
+            
+            
 
     #modal agregar nuevo
     def show_add_dialog(self):
