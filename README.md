@@ -1,4 +1,3 @@
-
 ![Python](https://img.shields.io/badge/Python-3.8+-blue?logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Security](https://img.shields.io/badge/Security-AES-important)
@@ -12,7 +11,6 @@ AdataVision es un gestor de contraseñas con interfaz gráfica que almacena y pr
 <div align="center"><img src="cap1.webp"></div>
 <div align="center"><img src="cap2.webp"></div>
 
-
 ## Características Principales
 
 - **Sistema de autenticación** con usuario personal
@@ -23,25 +21,31 @@ AdataVision es un gestor de contraseñas con interfaz gráfica que almacena y pr
 - **Auto-encriptación** al cerrar la aplicación
 
 ## Instalación O ejecucion
- - clona el repo y instala las dependencias
- ```bash
+
+- clona el repo y instala las dependencias
+
+```bash
 pip install -r requirements.txt
 ```
-### Ejecuta
+
+### Ejecuta(recomendado entorno aislado de python)
+
 ```bash
 python3 Adatavision.py
 ```
- - o ejecuta el Adatavision.bin(Asegurate de darle permisos de ejcucion con chmod +x ./Adatavision.bin)
+
+- o ejecuta el Adatavision.bin(Asegurate de darle permisos de ejcucion con chmod +x ./Adatavision.bin)
 
 ## Requisitos del Sistema
+
 - Python 3.8 o superior
 - PySide6 >= 6.5.0
 - cryptography >= 41.0.0
 
 ## Ayudama a mejorarla
+
 - pull request bienvenidos
 
 ## Licencia
-
 
 MIT License

@@ -1310,6 +1310,9 @@ class AdatavisionMainWindow(QMainWindow):
                                        QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.No:
                 self.close()
+                
+            elif time_diff > 50:  # 50 segundos adicionales
+                self.close()
             else:
                 self.last_activity = current_time
     
@@ -1540,32 +1543,14 @@ class AdatavisionMainWindow(QMainWindow):
     def load_data_from_string(self):
         """Carga los datos desde el string CSV almacenado en memoria"""
         print("Cargando datos desde el string CSV...")
-        try:
-            # Limpiar la tabla
-            self.data_table.setRowCount(0)
-            
-            # Crear un StringIO para usar csv.DictReader con el string
-            from io import StringIO
-            csv_string_io = StringIO(self.csv_data)
-            reader = csv.DictReader(csv_string_io)
-            
-            for row in reader:
-                current_row = self.data_table.rowCount()
-                self.data_table.insertRow(current_row)
-                
-                for j, col in enumerate(CSV_HEADERS):
-                    item = QTableWidgetItem(str(row.get(col, '')))
-                    # Hacer que las celdas no sean editables pero sean seleccionables
-                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
-                    self.data_table.setItem(current_row, j, item)
-                    
-        except Exception as e:
-            self.status_bar.showMessage(f"Error al parsear datos CSV: {str(e)}", 5000)
+        # self.csv_data = self.csv_data.strip()  # Eliminar espacios en blanco al inicio y al final
+        print(f"Datos cargados: {self.csv_data}")  # Mostrar los primeros 100 caracteres para depuración
 
 
             
             
             
+
 
     #modal agregar nuevo
     def show_add_dialog(self):
@@ -1776,13 +1761,28 @@ class AdatavisionMainWindow(QMainWindow):
             clave_final = base64.urlsafe_b64encode(clave_hash[:32])
             
             try:
-                with open(resource_path('Inventario.csv'), 'rb') as archivo:
-                    datos = archivo.read()
+                archivo = resource_path('Inventario.csv')
+                with open(archivo, 'r', newline='', encoding='utf-8') as file:
+                    datos = file.read()  # Guardar como string en memoria
                     f = Fernet(clave_final)
-                    datos_cifrados = f.encrypt(datos)
-                
-                with open(resource_path('Inventario.csv'), 'wb') as encrypted_file:
+                    datos_cifrados = f.encrypt(datos.encode('utf-8'))
+                    
+                with open(archivo, 'wb') as encrypted_file:
                     encrypted_file.write(datos_cifrados)
+                    print("Archivo encriptado correctamente")
+                    print(f"Datos cifrados: {datos_cifrados[:100]}...")  # Mostrar los primeros 100 bytes para depuración
+                    
+                
+            
+                
+                
+                # with open(resource_path('Inventario.csv'), 'rb') as archivo:
+                #     datos = archivo.read()
+                #     f = Fernet(clave_final)
+                #     datos_cifrados = f.encrypt(datos)
+                
+                # with open(resource_path('Inventario.csv'), 'wb') as encrypted_file:
+                #     encrypted_file.write(datos_cifrados)
                 
                 # Actualizar el estado
                 update_info_field(0, "encrypted")
