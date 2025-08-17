@@ -2,6 +2,7 @@ import sys
 import os
 import csv
 import base64
+import io
 import hashlib
 from datetime import date, datetime
 from random import choice
@@ -1538,16 +1539,7 @@ class AdatavisionMainWindow(QMainWindow):
         with open(file_path, 'r', newline='', encoding='utf-8') as file:
             self.csv_data = file.read()  # Guardar como string en memoria
             
-        self.load_data_from_string()
-    
-    def load_data_from_string(self):
-        """Carga los datos desde el string CSV almacenado en memoria"""
-        print("Cargando datos desde el string CSV...")
-        # self.csv_data = self.csv_data.strip()  # Eliminar espacios en blanco al inicio y al final
-        print(f"Datos cargados: {self.csv_data}")  # Mostrar los primeros 100 caracteres para depuración
-
-
-            
+     
             
             
 
@@ -1825,35 +1817,41 @@ class AdatavisionMainWindow(QMainWindow):
             clave_final = base64.urlsafe_b64encode(clave_hash[:32])
             
             try:
-                #leer como string
+                # Leer el archivo encriptado
                 archivo = resource_path('Inventario.csv')
                 with open(archivo, 'rb') as file:
-                    self.datos_cifrados = file.read()
-                    f = Fernet(clave_final)
-                    datos_descifrados = f.decrypt(datos_cifrados)
-                    
-                #exportar el string para leerlo
-                    return datos_descifrados.decode('utf-8')    
+                    datos_cifrados = file.read()  # Corregido: usar datos_cifrados en lugar de self.datos
                 
-                # with open(resource_path('Inventario.csv'), 'rb') as archivo:
-                #     datos_cifrados = archivo.read()
-                #     f = Fernet(clave_final)
-                #     datos_descifrados = f.decrypt(datos_cifrados)
+                # Desencriptar los datos
+                f = Fernet(clave_final)
+                datos_descifrados = f.decrypt(datos_cifrados)  # Corregido: usar datos_cifrados
                 
-                # with open(resource_path('Inventario.csv'), 'wb') as decrypted_file:
-                #     decrypted_file.write(datos_descifrados)
+                # Almacenar los datos desencriptados en diferentes formatos para uso posterior
+                self.datos_descifrados_raw = datos_descifrados
+                self.datos_descifrados_string = datos_descifrados.decode('utf-8')
+                self.csv_en_memoria = io.StringIO(self.datos_descifrados_string)
+                
+                # Información de depuración
+                print("Datos descifrados exitosamente:")
+                print(f"Tamaño: {len(datos_descifrados)} bytes")
+                print("Primeros 200 caracteres:", self.datos_descifrados_string[:200])
+                print("-" * 50)
                 
                 # Actualizar el estado
-                update_info_field(0, "decrypted")
-                
+                # update_info_field(0, "decrypted")
                 self.check_file_status()
-                self.load_inventory()
                 
-                QMessageBox.information(self, "Éxito", "El archivo se desencriptó con éxito")
-            
+                # Cargar inventario usando los datos en memoria
+                # self.load_inventory_from_memory()
+                
+                QMessageBox.information(self, "Éxito", "El archivo se desencriptó con éxito y está disponible en memoria")
+                return True
+                
             except Exception as e:
+                print(f"Error al desencriptar: {e}")
                 QMessageBox.critical(self, "Error", "No se pudo desencriptar el archivo. Verifique la contraseña.")
-    
+                return False
+            
     def generate_passwords(self):
         dialog = PasswordGeneratorDialog(self)
         if dialog.exec():
