@@ -1767,10 +1767,14 @@ class AdatavisionMainWindow(QMainWindow):
                     f = Fernet(clave_final)
                     datos_cifrados = f.encrypt(datos.encode('utf-8'))
                     
+                    
+                    
                 with open(archivo, 'wb') as encrypted_file:
                     encrypted_file.write(datos_cifrados)
+                    
                     print("Archivo encriptado correctamente")
                     print(f"Datos cifrados: {datos_cifrados[:100]}...")  # Mostrar los primeros 100 bytes para depuración
+                    
                     
                 
             
@@ -1821,13 +1825,23 @@ class AdatavisionMainWindow(QMainWindow):
             clave_final = base64.urlsafe_b64encode(clave_hash[:32])
             
             try:
-                with open(resource_path('Inventario.csv'), 'rb') as archivo:
-                    datos_cifrados = archivo.read()
+                #leer como string
+                archivo = resource_path('Inventario.csv')
+                with open(archivo, 'rb') as file:
+                    self.datos_cifrados = file.read()
                     f = Fernet(clave_final)
                     datos_descifrados = f.decrypt(datos_cifrados)
+                    
+                #exportar el string para leerlo
+                    return datos_descifrados.decode('utf-8')    
                 
-                with open(resource_path('Inventario.csv'), 'wb') as decrypted_file:
-                    decrypted_file.write(datos_descifrados)
+                # with open(resource_path('Inventario.csv'), 'rb') as archivo:
+                #     datos_cifrados = archivo.read()
+                #     f = Fernet(clave_final)
+                #     datos_descifrados = f.decrypt(datos_cifrados)
+                
+                # with open(resource_path('Inventario.csv'), 'wb') as decrypted_file:
+                #     decrypted_file.write(datos_descifrados)
                 
                 # Actualizar el estado
                 update_info_field(0, "decrypted")
