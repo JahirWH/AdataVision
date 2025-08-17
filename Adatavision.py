@@ -1489,35 +1489,54 @@ class AdatavisionMainWindow(QMainWindow):
             self.file_status_label.setStyleSheet("color: #E74C3C; font-weight: bold;")
     
     def load_inventory(self):
-        
         try:
             # Verificar si el archivo está encriptado
             data = read_info_file()
             status = data[0]  # índice 0 para el estado
             if status == "encrypted":
-                dialog = EncryptedFileDialog(self)
-                dialog.exec()
-                self.data_table.setRowCount(0)
-                return
+                # Intentar desencriptar primero
+                if self.decrypt_file():
+                    # Si la desencriptación fue exitosa, usar los datos en memoria
+                    if hasattr(self, 'datos_descifrados_string'):
+                        self.csv_data = self.datos_descifrados_string
+                        print("Cargando datos desde memoria (desencriptados):")
+                        print(self.csv_data[:200])  # Mostrar primeros 200 caracteres
+                        
+                        # Cargar datos desde el string en memoria
+                        self.data_table.setRowCount(0)
+                        csv_reader = csv.DictReader(io.StringIO(self.csv_data))
+                        
+                        for row in csv_reader:
+                            current_row = self.data_table.rowCount()
+                            self.data_table.insertRow(current_row)
+                            for j, col in enumerate(CSV_HEADERS):
+                                item = QTableWidgetItem(str(row[col]))
+                                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                                self.data_table.setItem(current_row, j, item)
+                        
+                        self.data_table.resizeColumnsToContents()
+                        self.status_bar.showMessage("Inventario cargado desde memoria (desencriptado)", 3000)
+                        return
+                else:
+                    # Si la desencriptación falló, mostrar diálogo de archivo encriptado
+                    dialog = EncryptedFileDialog(self)
+                    dialog.exec()
+                    self.data_table.setRowCount(0)
+                    return
             
-            
-            # Cargar datos con CSV nativo
+            # Cargar datos desde archivo si no está encriptado
             self.data_table.setRowCount(0)
             with open(resource_path('Inventario.csv'), 'r', newline='') as file:
-                reader = csv.DictReader(file)
+                self.csv_data = file.read()  # Guardar como string en memoria
                 
-                for row in reader:
-                    current_row = self.data_table.rowCount()
-                    self.data_table.insertRow(current_row)
-                    for j, col in enumerate(CSV_HEADERS):
-                        item = QTableWidgetItem(str(row[col]))
-                        # Hacer que las celdas no sean editables pero sean seleccionables
-                        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
-                        self.data_table.setItem(current_row, j, item)
-                        print(f"Row {current_row}, Column {j}: {row[col]}")
-                        print("Inventario cargado correctamente")
-                        
-                        
+            csv_reader = csv.DictReader(io.StringIO(self.csv_data))
+            for row in csv_reader:
+                current_row = self.data_table.rowCount()
+                self.data_table.insertRow(current_row)
+                for j, col in enumerate(CSV_HEADERS):
+                    item = QTableWidgetItem(str(row[col]))
+                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                    self.data_table.setItem(current_row, j, item)
             
             self.data_table.resizeColumnsToContents()
             self.status_bar.showMessage("Inventario cargado correctamente", 3000)
@@ -1532,12 +1551,6 @@ class AdatavisionMainWindow(QMainWindow):
         
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo cargar el inventario: {str(e)}")
-    
-    
-            #CArga el archivo y guardalo en un string
-        file_path = resource_path('Inventario.csv')
-        with open(file_path, 'r', newline='', encoding='utf-8') as file:
-            self.csv_data = file.read()  # Guardar como string en memoria
             
      
             
