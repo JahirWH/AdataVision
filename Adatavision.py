@@ -1558,6 +1558,7 @@ class AdatavisionMainWindow(QMainWindow):
 
 
     #modal agregar nuevo
+    
     def show_add_dialog(self):
         dialog = QDialog(self)
         dialog.setWindowTitle("Agregar Nuevo Elemento")
@@ -1658,7 +1659,9 @@ class AdatavisionMainWindow(QMainWindow):
         
         # Verificar si el código ya existe
         try:
-            with open(resource_path('Inventario.csv'), 'r') as file:
+            #arreglar
+            archivo = self.csv_en_memoria
+            with archivo as file:
                 reader = csv.DictReader(file)
                 for row in reader:
                     if row['codigo'] == code:
