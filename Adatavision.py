@@ -1857,6 +1857,9 @@ class AdatavisionMainWindow(QMainWindow):
                 # update_info_field(0, "decrypted")
                 self.check_file_status()
                 
+                #Exporta globalmente los datos desencriptados
+                self.csv_data = self.datos_descifrados_string
+                
                 # Cargar inventario usando los datos en memoria
                 # self.load_inventory_from_memory()
                 
