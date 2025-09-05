@@ -1883,15 +1883,31 @@ class AdatavisionMainWindow(QMainWindow):
     
     def show_modify_dialog(self):
         # Verificar si el archivo está encriptado
-        try:
-            data = read_info_file()
-            status = data[0]  # índice 0 para el estado
-            if status == "encrypted":
-                encrypted_dialog = EncryptedFileDialog(self)
-                encrypted_dialog.exec()
-                return
-        except Exception as e:
-            update_info_field(0, "decrypted")
+        
+        # Verifica si el archivo esta desencrypptado en memoria
+        if hasattr(self, 'datos_descifrados_string'):
+            self.csv_data = self.datos_descifrados_string
+            print("Cargando datos desde memoria (desencriptados) para modificar:")
+            print(self.csv_data[:200])  # Mostrar primeros 200 caracteres
+        else:
+            try:
+                data = read_info_file()
+                status = data[0]  # índice 0 para el estado
+                if status == "encrypted":
+                    encrypted_dialog = EncryptedFileDialog(self)
+                    encrypted_dialog.exec()
+                    return
+            except Exception as e:
+                update_info_field(0, "decrypted")
+        # try:
+        #     data = read_info_file()
+        #     status = data[0]  # índice 0 para el estado
+        #     if status == "encrypted":
+        #         encrypted_dialog = EncryptedFileDialog(self)
+        #         encrypted_dialog.exec()
+        #         return
+        # except Exception as e:
+        #     update_info_field(0, "decrypted")
         
         dialog = ModifyDialog(self)
         if dialog.exec():
