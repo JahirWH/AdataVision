@@ -979,8 +979,13 @@ class ModifyDialog(QDialog):
             return
         
         try:
-            with open(resource_path('Inventario.csv'), 'r', newline='') as file:
-                reader = csv.DictReader(file)
+            # Obtener referencia a la ventana principal
+            main_window = self.parent()
+            
+            # Verificar si hay datos en memoria
+            if hasattr(main_window, 'csv_data'):
+                # Usar los datos en memoria
+                reader = csv.DictReader(io.StringIO(main_window.csv_data))
                 for row in reader:
                     if row['codigo'] == code:
                         # Habilitar campos
@@ -998,8 +1003,10 @@ class ModifyDialog(QDialog):
                         self.username_input.setText(row['username'])
                         self.ref_input.setText(row['web'])
                         return
-            
-            QMessageBox.warning(self, "Error", "No se encontró ningún elemento con ese código")
+                
+                QMessageBox.warning(self, "Error", "No se encontró ningún elemento con ese código")
+            else:
+                QMessageBox.warning(self, "Error", "No hay datos cargados en memoria")
         
         except FileNotFoundError:
             QMessageBox.warning(self, "Error", "No se encontró el archivo de inventario")
@@ -1638,6 +1645,15 @@ class AdatavisionMainWindow(QMainWindow):
                 encrypted_dialog = EncryptedFileDialog(self)
                 encrypted_dialog.exec()
                 return
+            
+            # Si tenemos datos en memoria, trabajar con ellos
+            if hasattr(self, 'csv_data'):
+                print("Usando datos en memoria para agregar nuevo item")
+            else:
+                # Si no hay datos en memoria, cargarlos del archivo
+                with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+                    self.csv_data = file.read()
+                    
         except Exception as e:
             update_info_field(0, "decrypted")
         
@@ -1675,8 +1691,20 @@ class AdatavisionMainWindow(QMainWindow):
         today = str(date.today())
         
         try:
-            with open(resource_path('Inventario.csv'), 'a', newline='') as file:
-                file.write(f"\n{code},{service},{email},{password},{username},{reference},{today}")
+            # Crear una nueva línea CSV con los datos
+            new_line = f"\n{code},{service},{email},{password},{username},{reference},{today}"
+            
+            # Agregar la nueva línea a los datos en memoria
+            if not hasattr(self, 'csv_data'):
+                # Si no hay datos en memoria, crear con encabezados
+                self.csv_data = ','.join(CSV_HEADERS)
+            
+            # Agregar la nueva línea a los datos en memoria
+            self.csv_data += new_line
+            
+            # También escribir al archivo para persistencia
+            with open(resource_path('Inventario.csv'), 'w', newline='') as file:
+                file.write(self.csv_data)
             
             # Actualizar la fecha de modificación
             now = datetime.now().strftime("%Y-%m-%d")
@@ -1689,8 +1717,18 @@ class AdatavisionMainWindow(QMainWindow):
             self.username_input.clear()
             self.ref_input.clear()
             
-            # Recargar inventario
-            self.load_inventory()
+            # Recargar inventario desde los datos en memoria
+            self.data_table.setRowCount(0)
+            csv_reader = csv.DictReader(io.StringIO(self.csv_data))
+            for row in csv_reader:
+                current_row = self.data_table.rowCount()
+                self.data_table.insertRow(current_row)
+                for j, col in enumerate(CSV_HEADERS):
+                    item = QTableWidgetItem(str(row[col]))
+                    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                    self.data_table.setItem(current_row, j, item)
+            
+            self.data_table.resizeColumnsToContents()
             self.load_last_modified()
             
             QMessageBox.information(self, "Éxito", "Elemento agregado correctamente")
@@ -1724,18 +1762,25 @@ class AdatavisionMainWindow(QMainWindow):
             self.data_table.setRowCount(0)
             found_items = 0
             
-            with open(resource_path('Inventario.csv'), 'r', newline='') as file:
-                reader = csv.DictReader(file)
-                for row in reader:
-                    # Buscar en todos los campos
-                    if any(search_text in str(row[col]).lower() for col in CSV_HEADERS):
-                        current_row = self.data_table.rowCount()
-                        self.data_table.insertRow(current_row)
-                        for j, col in enumerate(CSV_HEADERS):
-                            item = QTableWidgetItem(str(row[col]))
-                            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
-                            self.data_table.setItem(current_row, j, item)
-                        found_items += 1
+            # Usar los datos en memoria si están disponibles
+            if hasattr(self, 'csv_data'):
+                reader = csv.DictReader(io.StringIO(self.csv_data))
+            else:
+                # Si no hay datos en memoria, cargarlos del archivo
+                with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+                    self.csv_data = file.read()
+                reader = csv.DictReader(io.StringIO(self.csv_data))
+            
+            for row in reader:
+                # Buscar en todos los campos
+                if any(search_text in str(row[col]).lower() for col in CSV_HEADERS):
+                    current_row = self.data_table.rowCount()
+                    self.data_table.insertRow(current_row)
+                    for j, col in enumerate(CSV_HEADERS):
+                        item = QTableWidgetItem(str(row[col]))
+                        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                        self.data_table.setItem(current_row, j, item)
+                    found_items += 1
             
             self.data_table.resizeColumnsToContents()
             self.status_bar.showMessage(f"Se encontraron {found_items} resultados", 3000)
