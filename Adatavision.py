@@ -1639,12 +1639,12 @@ class AdatavisionMainWindow(QMainWindow):
     def add_new_item(self, dialog=None):
         # Verificar si el archivo está encriptado
         try:
-            data = read_info_file()
-            status = data[0]  # índice 0 para el estado
-            if status == "encrypted":
-                encrypted_dialog = EncryptedFileDialog(self)
-                encrypted_dialog.exec()
-                return
+            # data = read_info_file()
+            # status = data[0]  # índice 0 para el estado
+            # if status == "encrypted":
+            #     encrypted_dialog = EncryptedFileDialog(self)
+            #     encrypted_dialog.exec()
+            #     return
             
             # Si tenemos datos en memoria, trabajar con ellos
             if hasattr(self, 'csv_data'):
