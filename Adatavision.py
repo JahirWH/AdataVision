@@ -33,19 +33,8 @@ CSV_HEADERS = ['codigo', 'service', 'email', 'password', 'username', 'web', 'fec
 
 # Funciones auxiliares para manejar info.txt
 def read_info_file():
-    """Lee el archivo info.txt y retorna los datos como lista"""
-    try:
-        with open(resource_path('info.txt'), 'r') as file:
-            line = file.readline().strip()
-            if line:
-                return line.split(',')
-            else:
-                return ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
-    except FileNotFoundError:
-        # Crear archivo por defecto si no existe
-        default_data = ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
-        write_info_file(default_data)
-        return default_data
+    # optiene los datos de load inventary para ver si el archivo se desencrypto
+    
     
     
 
@@ -1478,6 +1467,8 @@ class AdatavisionMainWindow(QMainWindow):
             update_info_field(2, "No hay contraseña temporal")
             self.temp_password_label.setText(" No hay contraseña temporal")
     
+    
+    # revisa el estado
     def check_file_status(self):
         try:
             data = read_info_file()
@@ -1649,10 +1640,10 @@ class AdatavisionMainWindow(QMainWindow):
             # Si tenemos datos en memoria, trabajar con ellos
             if hasattr(self, 'csv_data'):
                 print("Usando datos en memoria para agregar nuevo item")
-            else:
-                # Si no hay datos en memoria, cargarlos del archivo
-                with open(resource_path('Inventario.csv'), 'r', newline='') as file:
-                    self.csv_data = file.read()
+            # else:
+            #     # Si no hay datos en memoria, cargarlos del archivo
+            #     with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+            #         self.csv_data = file.read()
                     
         except Exception as e:
             update_info_field(0, "decrypted")
