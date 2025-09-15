@@ -1514,6 +1514,9 @@ class AdatavisionMainWindow(QMainWindow):
                         
                         self.data_table.resizeColumnsToContents()
                         self.status_bar.showMessage("Inventario cargado desde memoria (desencriptado)", 3000)
+                        #exportar el estado del archivo
+                        update_info_field(0, "decrypted")
+                        self.check_file_status()
                         return
                 else:
                     # Si la desencriptación falló, mostrar diálogo de archivo encriptado
