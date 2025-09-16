@@ -20,6 +20,8 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                               QTabWidget, QGridLayout, QComboBox, QDialog,
                               QFileDialog, QProgressBar, QFrame, QStackedWidget,
                               QScrollArea, QSplashScreen, QToolBar, QStatusBar)
+from PySide6.QtCore import QObject
+from PySide6.QtCore import Qt
 from PySide6.QtCore import Qt, QTimer, Signal, Slot, QSize, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QFont, QPixmap, QPalette, QIcon, QKeySequence, QAction
 from cryptography.fernet import Fernet
@@ -32,27 +34,34 @@ HEADERS = ['Código', 'Servicio', 'Email', 'Password', 'Usuario', 'Referencia', 
 CSV_HEADERS = ['codigo', 'service', 'email', 'password', 'username', 'web', 'fecha']
 
 # Funciones auxiliares para manejar info.txt
-def read_info_file():
-    # optiene los datos de load inventary para ver si el archivo se desencrypto
-    
-    
-    
+def read_info_file(main_window=None):
+    # Obtiene los datos del estado de la aplicación
+    if main_window and isinstance(main_window, AdatavisionMainWindow):
+        return [main_window.file_status, main_window.last_modified, main_window.temp_password]
+    return ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
 
-def write_info_file(data):
-    """Escribe datos al archivo info.txt"""
+def write_info_file(data, main_window=None):
+    """Actualiza las variables de estado en memoria"""
     try:
-        with open(resource_path('info.txt'), 'w') as file:
-            file.write(','.join(data))
+        if main_window and isinstance(main_window, AdatavisionMainWindow):
+            if len(data) >= 3:
+                main_window.file_status = data[0]
+                main_window.last_modified = data[1]
+                main_window.temp_password = data[2]
+                main_window.update_info_labels()
     except Exception as e:
-        print(f"Error escribiendo info.txt: {e}")
+        print(f"Error actualizando estado en memoria: {e}")
 
-def update_info_field(index, value):
-    """Actualiza un campo específico en info.txt"""
-    data = read_info_file()
-    if len(data) < 3:
-        data = ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
-    data[index] = str(value)
-    write_info_file(data)
+def update_info_field(index, value, main_window=None):
+    """Actualiza un campo específico en las variables de estado"""
+    if main_window and isinstance(main_window, AdatavisionMainWindow):
+        if index == 0:
+            main_window.file_status = str(value)
+        elif index == 1:
+            main_window.last_modified = str(value)
+        elif index == 2:
+            main_window.temp_password = str(value)
+        main_window.update_info_labels()
 
 class ThemeManager:
     def __init__(self):
@@ -579,8 +588,10 @@ class PasswordGeneratorDialog(QDialog):
         
         self.update_results_table()
         
-        # Guardar la última contraseña en info.txt
-        update_info_field(2, self.generated_passwords[-1])
+        # Guardar la última contraseña en el estado
+        main_window = self.parent()
+        if isinstance(main_window, AdatavisionMainWindow):
+            update_info_field(2, self.generated_passwords[-1], main_window)
     
     def update_results_table(self):
         self.results_area.setRowCount(len(self.generated_passwords))
@@ -793,10 +804,14 @@ class KeyGeneratorDialog(QDialog):
             return
         
         try:
-            data = read_info_file()
-            estado = data[0]  # índice 0 para el estado
-            if estado == "encrypted":
-                QMessageBox.warning(self, "Error", "El archivo ya está encriptado")
+            main_window = self.parent()
+            if isinstance(main_window, AdatavisionMainWindow):
+                estado = read_info_file(main_window)[0]
+                if estado == "encrypted":
+                    QMessageBox.warning(self, "Error", "El archivo ya está encriptado")
+                    return
+            else:
+                QMessageBox.warning(self, "Error", "No se pudo verificar el estado del archivo")
                 return
         except Exception as e:
             QMessageBox.warning(self, "Error", "No se pudo verificar el estado del archivo")
@@ -812,7 +827,9 @@ class KeyGeneratorDialog(QDialog):
                 encrypted_file.write(datos_cifrados)
             
             # Actualizar el estado
-            update_info_field(0, "encrypted")
+            main_window = self.parent()
+            if isinstance(main_window, AdatavisionMainWindow):
+                update_info_field(0, "encrypted", main_window)
             
             QMessageBox.information(self, "Éxito", "El archivo se encriptó con éxito")
             self.accept()
@@ -974,7 +991,7 @@ class ModifyDialog(QDialog):
             # Verificar si hay datos en memoria
             if hasattr(main_window, 'csv_data'):
                 # Usar los datos en memoria
-                reader = csv.DictReader(io.StringIO(main_window.csv_data))
+                reader = csv.DictReader(io.StringIO(main_window.csv_data or ""))
                 for row in reader:
                     if row['codigo'] == code:
                         # Habilitar campos
@@ -1008,12 +1025,32 @@ class AdatavisionMainWindow(QMainWindow):
         self.username = username
         self.last_used_password = None
         self.theme_manager = ThemeManager()
+        
+        # Variables de estado en memoria
+        self.csv_data = None  # Datos CSV en memoria
+        self.file_status = "decrypted"  # Estado de encriptación
+        self.last_modified = datetime.now().strftime("%Y-%m-%d")  # Última modificación
+        self.temp_password = "No hay contraseña temporal"  # Contraseña temporal
+        self.is_data_loaded = False  # Indica si los datos están cargados en memoria
+        
+    def update_info_labels(self):
+        """Actualiza las etiquetas de información con el estado actual"""
+        if hasattr(self, 'modification_label'):
+            self.modification_label.setText(f"Última modificación: {self.last_modified}")
+        if hasattr(self, 'temp_password_label'):
+            self.temp_password_label.setText(f"Contraseña temporal: {self.temp_password}")
+        if hasattr(self, 'file_status_label'):
+            self.file_status_label.setText(f"Estado del archivo: {self.file_status}")
+            
+    def load_last_modified(self):
+        """Actualiza la fecha de última modificación"""
+        self.last_modified = datetime.now().strftime("%Y-%m-%d")
+        self.update_info_labels()
+        
         self.initUI()
         
-        # Cargar información inicial
-        self.load_last_modified()
-        self.load_temp_password()
-        self.check_file_status()
+        # Cargar datos iniciales
+        self.load_initial_data()
         
         # Configurar el temporizador de inactividad
         self.inactivity_timer = QTimer(self)
@@ -1304,8 +1341,8 @@ class AdatavisionMainWindow(QMainWindow):
         if time_diff > 300:  # 5 minutos
             reply = QMessageBox.question(self, 'Sesión Inactiva',
                                        '¿Desea mantener la sesión activa?',
-                                       QMessageBox.Yes | QMessageBox.No)
-            if reply == QMessageBox.No:
+                                       QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if reply == QMessageBox.StandardButton.No:
                 self.close()
                 
             elif time_diff > 50:  # 50 segundos adicionales
@@ -1440,22 +1477,57 @@ class AdatavisionMainWindow(QMainWindow):
         self.add_button.setShortcut(self.add_shortcut)
     
 
-    def load_last_modified(self):
+    def load_initial_data(self):
+        """Carga los datos iniciales en memoria"""
         try:
-            data = read_info_file()
-            last_modified = data[1]  # índice 1 para la fecha
-            # Convertir la fecha a datetime y formatearla
-            try:
-                date_obj = datetime.strptime(last_modified, "%Y-%m-%d")
-                formatted_date = date_obj.strftime("%Y-%m-%d")
-                self.modification_label.setText(f"Última modificación: {formatted_date}")
-            except ValueError:
-                # Si hay un error al parsear la fecha, mostrar la fecha original
-                self.modification_label.setText(f"Última modificación: {last_modified}")
+            # Intentar cargar datos desde el archivo si existe
+            with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+                self.csv_data = file.read()
+                self.is_data_loaded = True
+        except FileNotFoundError:
+            # Si el archivo no existe, crear estructura inicial en memoria
+            self.csv_data = ','.join(CSV_HEADERS)
+            self.is_data_loaded = True
         except Exception as e:
-            now = datetime.now().strftime("%Y-%m-%d")
-            update_info_field(1, now)
-            self.modification_label.setText(f"Última modificación: {now}")
+            print(f"Error cargando datos iniciales: {e}")
+            self.is_data_loaded = False
+
+        # Actualizar las etiquetas de la interfaz
+        self.update_status_labels()
+    
+    def save_to_file(self):
+        """Guarda los datos en memoria al archivo"""
+        if not self.is_data_loaded:
+            return False
+            
+        try:
+            # Guardar solo si los datos están desencriptados
+            if self.file_status == "decrypted":
+                with open(resource_path('Inventario.csv'), 'w', newline='') as file:
+                    file.write(self.csv_data or "")
+                self.last_modified = datetime.now().strftime("%Y-%m-%d")
+                self.update_status_labels()
+                return True
+            return False
+        except Exception as e:
+            print(f"Error guardando datos: {e}")
+            return False
+
+    def update_status_labels(self):
+        """Actualiza las etiquetas de estado en la interfaz"""
+        # Actualizar etiqueta de última modificación
+        self.modification_label.setText(f"Última modificación: {self.last_modified}")
+        
+        # Actualizar etiqueta de contraseña temporal
+        self.temp_password_label.setText(f"temp: {self.temp_password}")
+        
+        # Actualizar etiqueta de estado del archivo
+        if self.file_status == "encrypted":
+            self.file_status_label.setText("Estado del archivo: Encriptado")
+            self.file_status_label.setStyleSheet("color: #27AE60; font-weight: bold;")
+        else:
+            self.file_status_label.setText("Estado del archivo: Desencriptado")
+            self.file_status_label.setStyleSheet("color: #E74C3C; font-weight: bold;")
 
 
     def load_temp_password(self):
@@ -1694,7 +1766,7 @@ class AdatavisionMainWindow(QMainWindow):
                 self.csv_data = ','.join(CSV_HEADERS)
             
             # Agregar la nueva línea a los datos en memoria
-            self.csv_data += new_line
+            self.csv_data = (self.csv_data or "") + new_line
             
             # También escribir al archivo para persistencia
             with open(resource_path('Inventario.csv'), 'w', newline='') as file:
@@ -1734,17 +1806,17 @@ class AdatavisionMainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"No se pudo agregar el elemento: {str(e)}")
     
     def search_items(self):
-        # Verificar si el archivo está encriptado
-        try:
-            data = read_info_file()
-            status = data[0]  # índice 0 para el estado
-            if status == "encrypted":
-                encrypted_dialog = EncryptedFileDialog(self)
-                encrypted_dialog.exec()
-                self.data_table.setRowCount(0)
-                return
-        except Exception as e:
-            update_info_field(0, "decrypted")
+        # Verificar si hay datos en memoria
+        if not self.is_data_loaded:
+            QMessageBox.warning(self, "Error", "No hay datos cargados en memoria")
+            return
+            
+        # Verificar si los datos están encriptados
+        if self.file_status == "encrypted":
+            encrypted_dialog = EncryptedFileDialog(self)
+            encrypted_dialog.exec()
+            self.data_table.setRowCount(0)
+            return
         
         search_text = self.search_input.text().strip().lower()
         
@@ -1756,18 +1828,18 @@ class AdatavisionMainWindow(QMainWindow):
             self.data_table.setRowCount(0)
             found_items = 0
             
-            # Usar los datos en memoria si están disponibles
-            if hasattr(self, 'csv_data'):
-                reader = csv.DictReader(io.StringIO(self.csv_data))
-            else:
-                # Si no hay datos en memoria, cargarlos del archivo
-                with open(resource_path('Inventario.csv'), 'r', newline='') as file:
-                    self.csv_data = file.read()
-                reader = csv.DictReader(io.StringIO(self.csv_data))
-            
+            # Usar los datos en memoria
+            reader = csv.DictReader(io.StringIO(self.csv_data or ""))
             for row in reader:
                 # Buscar en todos los campos
                 if any(search_text in str(row[col]).lower() for col in CSV_HEADERS):
+                    current_row = self.data_table.rowCount()
+                    self.data_table.insertRow(current_row)
+                    for j, col in enumerate(CSV_HEADERS):
+                        item = QTableWidgetItem(str(row[col]))
+                        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                        self.data_table.setItem(current_row, j, item)
+                    found_items += 1
                     current_row = self.data_table.rowCount()
                     self.data_table.insertRow(current_row)
                     for j, col in enumerate(CSV_HEADERS):
@@ -1778,85 +1850,56 @@ class AdatavisionMainWindow(QMainWindow):
             
             self.data_table.resizeColumnsToContents()
             self.status_bar.showMessage(f"Se encontraron {found_items} resultados", 3000)
-        
-        except FileNotFoundError:
-            QMessageBox.warning(self, "Error", "No se encontró el archivo de inventario")
-        
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo realizar la búsqueda: {str(e)}")
-    
+            QMessageBox.warning(self, "Error", f"Error al buscar: {str(e)}")
+            
     def encrypt_file(self):
-        # Verificar si el archivo ya está encriptado
-        try:
-            data = read_info_file()
-            status = data[0]  # índice 0 para el estado
-            if status == "encrypted":
-                QMessageBox.warning(self, "Archivo Encriptado", 
-                                      "El archivo ya está encriptado.")
-                return
-        except Exception as e:
-            update_info_field(0, "decrypted")
-        
-        # Mostrar diálogo para ingresar contraseña
+        """Encripta los datos en memoria"""
+        if not self.is_data_loaded:
+            QMessageBox.warning(self, "Error", "No hay datos cargados en memoria")
+            return
+            
+        if self.file_status == "encrypted":
+            QMessageBox.warning(self, "Error", "Los datos ya están encriptados")
+            return
+            
         dialog = PasswordDialog('encrypt', self)
         if dialog.exec():
             password = dialog.password
-            
-            # Generar clave a partir del usuario y contraseña
             clave_base = self.username + password
             clave_hash = hashlib.sha256(clave_base.encode()).digest()
             clave_final = base64.urlsafe_b64encode(clave_hash[:32])
             
             try:
-                archivo = resource_path('Inventario.csv')
-                with open(archivo, 'r', newline='', encoding='utf-8') as file:
-                    datos = file.read()  # Guardar como string en memoria
-                    f = Fernet(clave_final)
-                    datos_cifrados = f.encrypt(datos.encode('utf-8'))
-                    
-                    
-                    
-                with open(archivo, 'wb') as encrypted_file:
+                # Encriptar datos en memoria
+                f = Fernet(clave_final)
+                datos_cifrados = f.encrypt((self.csv_data or "").encode('utf-8'))
+                
+                # Guardar datos encriptados
+                with open(resource_path('Inventario.csv'), 'wb') as encrypted_file:
                     encrypted_file.write(datos_cifrados)
-                    
-                    print("Archivo encriptado correctamente")
-                    print(f"Datos cifrados: {datos_cifrados[:100]}...")  # Mostrar los primeros 100 bytes para depuración
-                    
-                    
                 
-            
-                
-                
-                # with open(resource_path('Inventario.csv'), 'rb') as archivo:
-                #     datos = archivo.read()
-                #     f = Fernet(clave_final)
-                #     datos_cifrados = f.encrypt(datos)
-                
-                # with open(resource_path('Inventario.csv'), 'wb') as encrypted_file:
-                #     encrypted_file.write(datos_cifrados)
-                
-                # Actualizar el estado
-                update_info_field(0, "encrypted")
-                
-                self.check_file_status()
+                # Actualizar estado
+                self.file_status = "encrypted"
+                self.update_status_labels()
                 self.data_table.setRowCount(0)
                 
-                QMessageBox.information(self, "Éxito", "El archivo se encriptó con éxito")
-            
+                QMessageBox.information(self, "Éxito", "Los datos se encriptaron con éxito")
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"No se pudo encriptar el archivo: {str(e)}")
-    
+                QMessageBox.critical(self, "Error", f"No se pudieron encriptar los datos: {str(e)}")
+                
     def decrypt_file(self):
-        # Verificar si el archivo ya está desencriptado
-        try:
-            data = read_info_file()
-            status = data[0]  # índice 0 para el estado
-            if status == "decrypted":
-                QMessageBox.warning(self, "Archivo Desencriptado", 
-                                      "El archivo ya está desencriptado.")
-                return
-        except Exception as e:
-            update_info_field(0, "encrypted")
+        """Desencripta los datos en memoria"""
+        # Verificar si los datos ya están desencriptados
+        if self.file_status == "decrypted":
+            QMessageBox.warning(self, "Archivo Desencriptado", 
+                              "Los datos ya están desencriptados.")
+            return False
+        
+        if not self.is_data_loaded:
+            QMessageBox.warning(self, "Error", 
+                              "No hay datos cargados en memoria.")
+            return False
         
         # Mostrar diálogo para ingresar contraseña
         dialog = PasswordDialog('decrypt', self)

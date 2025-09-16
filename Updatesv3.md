@@ -1,1 +1,0 @@
-# Adatavision v2
