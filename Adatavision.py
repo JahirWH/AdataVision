@@ -6,6 +6,10 @@ import io
 import hashlib
 from datetime import date, datetime
 from random import choice
+import shutil
+from secure_data_manager import SecureDataManager
+from backup_manager import BackupManager
+from file_encryption_checker import verify_encryption_state
 
 def resource_path(relative_path):
     try:
@@ -20,6 +24,8 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                               QTabWidget, QGridLayout, QComboBox, QDialog,
                               QFileDialog, QProgressBar, QFrame, QStackedWidget,
                               QScrollArea, QSplashScreen, QToolBar, QStatusBar)
+from PySide6.QtCore import Qt, QTimer, Signal, Slot, QSize, QPropertyAnimation, QEasingCurve
+from PySide6.QtGui import QFont, QPixmap, QPalette, QIcon, QKeySequence, QAction
 from PySide6.QtCore import QObject
 from PySide6.QtCore import Qt
 from PySide6.QtCore import Qt, QTimer, Signal, Slot, QSize, QPropertyAnimation, QEasingCurve
@@ -80,15 +86,15 @@ def read_info_file(main_window=None):
         return [main_window.file_status, main_window.last_modified, main_window.temp_password]
     
     # Leer desde archivo si existe
-    try:
-        with open(resource_path('info.txt'), 'r') as file:
-            line = file.readline().strip()
-            if line:
-                return line.split(',')
-    except FileNotFoundError:
-        pass
+    # try:
+    #     with open(resource_path('info.txt'), 'r') as file:
+    #         line = file.readline().strip()
+    #         if line:
+    #             return line.split(',')
+    # except FileNotFoundError:
+    #     pass
     
-    return ['decrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
+    return ['encrypted', datetime.now().strftime("%Y-%m-%d"), 'No hay contraseña temporal']
 
 def write_info_file(data, main_window=None):
     """Actualiza las variables de estado en memoria y archivo"""
@@ -1084,9 +1090,13 @@ class AdatavisionMainWindow(QMainWindow):
         self.last_used_password = None
         self.theme_manager = ThemeManager()
         
+        # Inicializar gestores
+        self.data_manager = SecureDataManager()
+        self.backup_manager = BackupManager()
+        
         # Variables de estado en memoria
         self.csv_data = None  # Datos CSV en memoria
-        self.file_status = "decrypted"  # Estado de encriptación
+        self.file_status = self.update_file_status()  # Estado de encriptación
         self.last_modified = datetime.now().strftime("%Y-%m-%d")  # Última modificación
         self.temp_password = "No hay contraseña temporal"  # Contraseña temporal
         self.is_data_loaded = False  # Indica si los datos están cargados en memoria
@@ -1103,6 +1113,20 @@ class AdatavisionMainWindow(QMainWindow):
         self.inactivity_timer.start(300000)  # 5 minutos
         self.last_activity = datetime.now()
         
+    def update_file_status(self):
+        """Actualiza y retorna el estado actual del archivo"""
+        return verify_encryption_state(resource_path('Inventario.csv'))
+    
+    def update_status_display(self):
+        """Actualiza la interfaz con el estado actual"""
+        if hasattr(self, 'file_status_label'):
+            status = self.file_status["status"]
+            icon = "🔒" if status == "encrypted" else "🔓" if status == "decrypted" else "❓"
+            color = "#E74C3C" if status == "encrypted" else "#2ECC71" if status == "decrypted" else "#F1C40F"
+            
+            self.file_status_label.setText(f"{icon} Archivo {status.capitalize()}")
+            self.file_status_label.setStyleSheet(f"color: {color}; font-weight: bold;")
+    
     def update_info_labels(self):
         """Actualiza las etiquetas de información con el estado actual"""
         if hasattr(self, 'modification_label'):
@@ -1110,6 +1134,7 @@ class AdatavisionMainWindow(QMainWindow):
         if hasattr(self, 'temp_password_label'):
             self.temp_password_label.setText(f"Contraseña temporal: {self.temp_password}")
         if hasattr(self, 'file_status_label'):
+            self.update_status_display()
             self.file_status_label.setText(f"Estado del archivo: {self.file_status}")
             
     def load_last_modified(self):
@@ -1129,9 +1154,36 @@ class AdatavisionMainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         
         # Layout principal
-        main_layout = QHBoxLayout(central_widget)
+        main_layout = QVBoxLayout(central_widget)
         main_layout.setSpacing(10)
         main_layout.setContentsMargins(10, 10, 10, 10)
+        
+        # Barra de estado superior
+        status_bar = QFrame()
+        status_bar.setFrameStyle(QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken)
+        status_bar_layout = QHBoxLayout(status_bar)
+        
+        # Estado del archivo
+        self.file_status_label = QLabel()
+        self.update_status_display()
+        status_bar_layout.addWidget(self.file_status_label)
+        
+        # Última modificación
+        self.modification_label = QLabel()
+        status_bar_layout.addWidget(self.modification_label)
+        
+        # Contraseña temporal
+        self.temp_password_label = QLabel()
+        status_bar_layout.addWidget(self.temp_password_label)
+        
+        status_bar_layout.addStretch()
+        main_layout.addWidget(status_bar)
+        
+        # Contenedor principal
+        content_widget = QWidget()
+        content_layout = QHBoxLayout(content_widget)
+        content_layout.setSpacing(10)
+        main_layout.addWidget(content_widget)
         
         # Panel izquierdo (tabla y búsqueda)
         left_panel = QWidget()
@@ -1536,6 +1588,71 @@ class AdatavisionMainWindow(QMainWindow):
         self.add_button.setShortcut(self.add_shortcut)
     
 
+    def update_table(self):
+        """Actualiza la tabla con los datos en memoria"""
+        if not hasattr(self, 'data_table'):
+            return
+            
+        self.data_table.setRowCount(0)
+        if not self.csv_data:
+            return
+            
+        for row_data in self.csv_data:
+            row = self.data_table.rowCount()
+            self.data_table.insertRow(row)
+            
+            for col, key in enumerate(CSV_HEADERS):
+                item = QTableWidgetItem(str(row_data.get(key, "")))
+                self.data_table.setItem(row, col, item)
+    
+    def load_data(self):
+        """Carga datos del archivo"""
+        try:
+            # Crear backup antes de cargar
+            self.backup_manager.create_backup(resource_path('Inventario.csv'))
+            
+            # Cargar datos
+            success = self.data_manager.load_data(
+                resource_path('Inventario.csv'),
+                self.last_used_password
+            )
+            
+            if success:
+                self.csv_data = self.data_manager.get_data()
+                self.update_table()
+                self.file_status = self.update_file_status()
+                self.update_status_display()
+                return True
+                
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al cargar datos: {str(e)}")
+        return False
+    
+    def save_data(self, encrypt: bool = False):
+        """Guarda los datos en un nuevo archivo"""
+        try:
+            # Crear backup antes de guardar
+            self.backup_manager.create_backup(resource_path('Inventario.csv'))
+            
+            # Guardar datos
+            success, new_file = self.data_manager.save_data(
+                resource_path('Inventario.csv'),
+                encrypt
+            )
+            
+            if success:
+                # Si se guardó en un nuevo archivo, actualizar el original
+                if new_file != resource_path('Inventario.csv'):
+                    shutil.move(new_file, resource_path('Inventario.csv'))
+                
+                self.file_status = self.update_file_status()
+                self.update_status_display()
+                return True
+                
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al guardar datos: {str(e)}")
+        return False
+    
     def load_initial_data(self):
         """Carga los datos iniciales en memoria"""
         try:
