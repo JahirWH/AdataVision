@@ -20,7 +20,7 @@ AdataVision es un gestor de contraseñas con interfaz gráfica que almacena y pr
 - **Copia al portapapeles** para acceso rápido
 - **Auto-encriptación** al cerrar la aplicación
 
-## Importante
+## Importante (Proposito)
 
 - Esta version beta busca utilizar los datos encryptados de el archivo , desencryptarlos en la memoria del programa temporal, y utilizarlos para modificaciones, o agregar nuevos datos, y posterior mente volvelos a encryptar sin utiliar tanto el achivo original, si no una copia con datos actualizada
 
