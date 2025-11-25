@@ -1,16 +1,19 @@
 # Guía de Mejoras para AdataVision
 
 ## Estructura Deseada
+
 1. Cargar archivo -> String en memoria -> Desencriptar -> Modificar -> Encriptar -> Guardar archivo
 
 ## Cambios Necesarios
 
 ### 1. Variables de Estado en MainWindow
+
 - self.datos_en_memoria (str): Contendrá los datos CSV como string
 - self.datos_modificados (bool): Indica si hay cambios sin guardar
 - self.estado_encriptado (bool): Indica si los datos están encriptados
 
 ### 2. Flujo Principal de Datos
+
 ```
 Inicio:
    ├── Cargar CSV a memoria
@@ -35,33 +38,36 @@ Inicio:
 ### 3. Funciones a Modificar/Crear
 
 #### Manejo de Archivo
+
 ```python
 def cargar_archivo_a_memoria(self):
     """Lee Inventario.csv y lo guarda como string en memoria"""
-    
+
 def guardar_cambios(self):
     """Guarda los datos de memoria al archivo"""
 ```
 
 #### Operaciones en Memoria
+
 ```python
 def ver_datos(self):
     """Muestra datos de memoria en la tabla"""
-    
+
 def modificar_dato(self, nuevo_valor):
     """Modifica datos en memoria"""
     self.datos_modificados = True
-    
+
 def agregar_dato(self, nuevo_dato):
     """Agrega datos en memoria"""
     self.datos_modificados = True
 ```
 
 #### Encriptación
+
 ```python
 def encriptar_datos_memoria(self):
     """Encripta los datos en memoria"""
-    
+
 def desencriptar_datos_memoria(self):
     """Desencripta los datos en memoria"""
 ```
@@ -69,18 +75,22 @@ def desencriptar_datos_memoria(self):
 ### 4. Orden de Implementación
 
 1. Modificar clase principal:
+
    - Añadir nuevas variables de estado
    - Implementar carga inicial a memoria
 
 2. Crear funciones de manejo de memoria:
+
    - Implementar conversión CSV <-> String
    - Manejar modificaciones en memoria
 
 3. Adaptar funciones existentes:
+
    - Modificar funciones de ver/agregar/modificar
    - Usar datos en memoria en lugar de archivo
 
 4. Implementar guardado automático:
+
    - Detectar cierre de aplicación
    - Guardar cambios si es necesario
 
@@ -91,10 +101,12 @@ def desencriptar_datos_memoria(self):
 ### 5. Puntos de Mejora
 
 1. Rendimiento:
+
    - Usar StringIO para manejar CSV en memoria
    - Implementar caché para búsquedas frecuentes
 
 2. Seguridad:
+
    - Limpiar memoria después de cerrar
    - No escribir datos desencriptados en disco
 
@@ -138,3 +150,4 @@ self.limpiar_memoria()
 4. Implementar encriptación
 5. Añadir manejo de errores
 6. Mejorar interfaz de usuario
+7. IMplementacion de estatus activo e inactivo
