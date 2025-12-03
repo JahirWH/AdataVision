@@ -8,8 +8,8 @@ AdataVision es un gestor de contraseñas con interfaz gráfica que almacena y pr
 
 ## Capturas de Pantalla
 
-<div align="center"><img src="/img/cap1.webp"></div>
-<div align="center"><img src="/img/cap2.webp"></div>
+<div align="center"><img src="img/cap1.webp"></div>
+<div align="center"><img src="img/cap2.webp"></div>
 
 ## Características Principales
 

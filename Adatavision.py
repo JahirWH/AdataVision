@@ -292,7 +292,7 @@ class LoginDialog(QDialog):
         
         # Agregar imagen
         image_label = QLabel()
-        pixmap = QPixmap(resource_path("/img/taurs.png"))
+        pixmap = QPixmap(resource_path("img/taurs.png"))
         scaled_pixmap = pixmap.scaled(200, 140, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         image_label.setPixmap(scaled_pixmap)
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -307,7 +307,7 @@ class LoginDialog(QDialog):
         # Establecer imagen de fondo
         self.setStyleSheet("""
             QDialog {
-                background-image: url(/img/cyberpunk.jpg);
+                background-image: url(img/cyberpunk.jpg);
                 background-position: center;
                 background-repeat: no-repeat;
                 background-size: cover;
