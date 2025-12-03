@@ -67,7 +67,7 @@ class ThemeManager:
         self.current_theme = "dark"
         self.themes = {
             "dark": {
-                "main_bg": "background: url(background.jpg) center center/cover no-repeat fixed;",
+                "main_bg": "background: url(/img/background.jpg) center center/cover no-repeat fixed;",
                 "widget_bg": "background-color: rgba(26, 26, 26, 0.48);",
                 "button_bg": "background-color: rgba(45, 45, 45, 0.53);",
                 "button_hover": "background-color: rgba(64, 64, 64, 0.9);",
@@ -292,7 +292,7 @@ class LoginDialog(QDialog):
         
         # Agregar imagen
         image_label = QLabel()
-        pixmap = QPixmap(resource_path("taurs.png"))
+        pixmap = QPixmap(resource_path("/img/taurs.png"))
         scaled_pixmap = pixmap.scaled(200, 140, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
         image_label.setPixmap(scaled_pixmap)
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -307,7 +307,7 @@ class LoginDialog(QDialog):
         # Establecer imagen de fondo
         self.setStyleSheet("""
             QDialog {
-                background-image: url(cyberpunk.jpg);
+                background-image: url(/img/cyberpunk.jpg);
                 background-position: center;
                 background-repeat: no-repeat;
                 background-size: cover;
