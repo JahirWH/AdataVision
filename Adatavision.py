@@ -607,226 +607,6 @@ class PasswordGeneratorDialog(QDialog):
             QApplication.clipboard().setText(item.text())
             QMessageBox.information(self, "Copiado", "Contraseña copiada al portapapeles")
 
-class KeyGeneratorDialog(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Generador de Claves")
-        self.setFixedSize(500, 400)  # Aumentado el tamaño
-        
-        # Layout principal
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-        
-        # Título
-        title_label = QLabel("Generador de Claves de Encriptación")
-        title_label.setStyleSheet("""
-            font-size: 24px; 
-            font-weight: bold;
-            color: #00ff9f;
-            margin-bottom: 20px;
-        """)
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(title_label)
-        
-        # Campo de usuario
-        user_layout = QHBoxLayout()
-        user_label = QLabel("Usuario:")
-        user_label.setStyleSheet("font-size: 16px;")
-        self.user_input = QLineEdit()
-        self.user_input.setPlaceholderText("Máximo 6 letras")
-        self.user_input.setMaxLength(6)
-        self.user_input.setStyleSheet("""
-            QLineEdit {
-                padding: 8px;
-                font-size: 14px;
-                min-width: 200px;
-            }
-        """)
-        user_layout.addWidget(user_label)
-        user_layout.addWidget(self.user_input)
-        layout.addLayout(user_layout)
-        
-        # Campo de clave numérica
-        key_layout = QHBoxLayout()
-        key_label = QLabel("Clave numérica:")
-        key_label.setStyleSheet("font-size: 16px;")
-        self.key_input = QLineEdit()
-        self.key_input.setPlaceholderText("Máximo 6 dígitos")
-        self.key_input.setMaxLength(6)
-        self.key_input.setStyleSheet("""
-            QLineEdit {
-                padding: 8px;
-                font-size: 14px;
-                min-width: 200px;
-            }
-        """)
-        key_layout.addWidget(key_label)
-        key_layout.addWidget(self.key_input)
-        layout.addLayout(key_layout)
-        
-        # Área para mostrar la clave generada
-        self.key_display = QLineEdit()
-        self.key_display.setReadOnly(True)
-        self.key_display.setPlaceholderText("La clave generada se mostrará aquí")
-        self.key_display.setStyleSheet("""
-            QLineEdit {
-                background-color: #1a1a2e;
-                padding: 10px;
-                font-size: 14px;
-                min-height: 40px;
-            }
-        """)
-        layout.addWidget(self.key_display)
-        
-        # Botones
-        button_layout = QHBoxLayout()
-        button_layout.setSpacing(10)
-        
-        self.generate_button = QPushButton("Generar Clave")
-        self.generate_button.setStyleSheet("""
-            QPushButton {
-                background-color: #3498DB;
-                color: white;
-                border-radius: 5px;
-                padding: 12px;
-                font-size: 14px;
-                min-width: 150px;
-            }
-            QPushButton:hover {
-                background-color: #2980B9;
-            }
-        """)
-        self.generate_button.clicked.connect(self.generate_key)
-        
-        self.save_button = QPushButton("Guardar")
-        self.save_button.setEnabled(False)
-        self.save_button.setStyleSheet("""
-            QPushButton {
-                background-color: #2ECC71;
-                color: white;
-                border-radius: 5px;
-                padding: 12px;
-                font-size: 14px;
-                min-width: 150px;
-            }
-            QPushButton:hover {
-                background-color: #27AE60;
-            }
-            QPushButton:disabled {
-                background-color: #95A5A6;
-            }
-        """)
-        self.save_button.clicked.connect(self.save_key)
-        
-        self.encrypt_button = QPushButton("Encriptar Ahora")
-        self.encrypt_button.setEnabled(False)
-        self.encrypt_button.setStyleSheet("""
-            QPushButton {
-                background-color: #E74C3C;
-                color: white;
-                border-radius: 5px;
-                padding: 12px;
-                font-size: 14px;
-                min-width: 150px;
-            }
-            QPushButton:hover {
-                background-color: #C0392B;
-            }
-            QPushButton:disabled {
-                background-color: #95A5A6;
-            }
-        """)
-        self.encrypt_button.clicked.connect(self.encrypt_now)
-        
-        button_layout.addWidget(self.generate_button)
-        button_layout.addWidget(self.save_button)
-        button_layout.addWidget(self.encrypt_button)
-        layout.addLayout(button_layout)
-        
-        # Botón para cerrar
-        self.close_button = QPushButton("Cerrar")
-        self.close_button.setStyleSheet("""
-            QPushButton {
-                background-color: #95A5A6;
-                color: white;
-                border-radius: 5px;
-                padding: 12px;
-                font-size: 14px;
-                min-width: 150px;
-            }
-            QPushButton:hover {
-                background-color: #7F8C8D;
-            }
-        """)
-        self.close_button.clicked.connect(self.reject)
-        layout.addWidget(self.close_button, alignment=Qt.AlignmentFlag.AlignCenter)
-        
-        self.generated_key = None
-    
-    def generate_key(self):
-        username = self.user_input.text()
-        if not username.isalpha() or len(username) > 6:
-            QMessageBox.warning(self, "Error", "El usuario debe contener solo letras (máximo 6)")
-            return
-        
-        key = self.key_input.text()
-        if not key.isdigit() or len(key) > 6:
-            QMessageBox.warning(self, "Error", "La clave debe contener solo números (máximo 6)")
-            return
-        
-        clave_base = username + key
-        clave_hash = hashlib.sha256(clave_base.encode()).digest()
-        clave_final = base64.urlsafe_b64encode(clave_hash[:32])
-        
-        self.generated_key = clave_final
-        self.key_display.setText(clave_final.decode())
-        
-        self.save_button.setEnabled(True)
-        self.encrypt_button.setEnabled(True)
-    
-    def save_key(self):
-        if not self.generated_key:
-            return
-        
-        username = self.user_input.text()
-        key = self.key_input.text()
-        
-        with open('clave.txt', 'wb') as archivo:
-            archivo.write(f"Usuario: {username}:password:{key}\n".encode())
-        
-        QMessageBox.information(self, "Éxito", "La clave se ha guardado con éxito en clave.txt")
-    
-    def encrypt_now(self):
-        if not self.generated_key:
-            return
-        
-        try:
-            data = read_info_file()
-            estado = data[0]  # índice 0 para el estado
-            if estado == "encrypted":
-                QMessageBox.warning(self, "Error", "El archivo ya está encriptado")
-                return
-        except Exception as e:
-            QMessageBox.warning(self, "Error", "No se pudo verificar el estado del archivo")
-            return
-        
-        try:
-            with open('Inventario.csv', 'rb') as archivo:
-                datos = archivo.read()
-                f = Fernet(self.generated_key)
-                datos_cifrados = f.encrypt(datos)
-            
-            with open('Inventario.csv', 'wb') as encrypted_file:
-                encrypted_file.write(datos_cifrados)
-            
-            # Actualizar el estado
-            update_info_field(0, "encrypted")
-            
-            QMessageBox.information(self, "Éxito", "El archivo se encriptó con éxito")
-            self.accept()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo encriptar el archivo: {str(e)}")
-
 class EncryptedFileDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -1264,36 +1044,37 @@ class AdatavisionMainWindow(QMainWindow):
                 box-shadow: 0 0 20px rgba(255, 128, 0, 0.2);
             }
         """)
-        self.generate_password_button.clicked.connect(self.generate_passwords)
-        right_layout.addWidget(self.generate_password_button)
         
-        self.generate_key_button = QPushButton("Generar Claves")
-        self.generate_key_button.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(26, 26, 26, 0.95);
-                color: #8000ff;
-                border: 1px solid rgba(128, 0, 255, 0.2);
-                border-radius: 10px;
-                padding: 12px;
-                font-size: 14px;
-                min-width: 150px;
-                font-weight: 500;
-                transition: all 0.3s ease;
-            }
-            QPushButton:hover {
-                background-color: rgba(128, 0, 255, 0.1);
-                border: 1px solid rgba(128, 0, 255, 0.4);
-                box-shadow: 0 0 20px rgba(128, 0, 255, 0.2);
-            }
-        """)
-        self.generate_key_button.clicked.connect(self.generate_keys)
-        right_layout.addWidget(self.generate_key_button)
+        # self.generate_password_button.clicked.connect(self.generate_passwords)
+        # right_layout.addWidget(self.generate_password_button)
+        
+        # self.generate_key_button = QPushButton("Generar Claves")
+        # self.generate_key_button.setStyleSheet("""
+        #     QPushButton {
+        #         background-color: rgba(26, 26, 26, 0.95);
+        #         color: #8000ff;
+        #         border: 1px solid rgba(128, 0, 255, 0.2);
+        #         border-radius: 10px;
+        #         padding: 12px;
+        #         font-size: 14px;
+        #         min-width: 150px;
+        #         font-weight: 500;
+        #         transition: all 0.3s ease;
+        #     }
+        #     QPushButton:hover {
+        #         background-color: rgba(128, 0, 255, 0.1);
+        #         border: 1px solid rgba(128, 0, 255, 0.4);
+        #         box-shadow: 0 0 20px rgba(128, 0, 255, 0.2);
+        #     }
+        # """)
+        # self.generate_key_button.clicked.connect(self.generate_keys)
+        # right_layout.addWidget(self.generate_key_button)
 
         # Botones para ocultar/mostrar/borrar filas seleccionadas
         self.hide_selected_button = QPushButton("Ocultar Seleccionados")
         self.hide_selected_button.setStyleSheet("""
             QPushButton {
-                background-color: rgba(100, 100, 100, 0.9);
+                background-color: rgba(26, 26, 26, 0.95);
                 color: #ffffff;
                 border-radius: 8px;
                 padding: 10px;
@@ -1310,7 +1091,7 @@ class AdatavisionMainWindow(QMainWindow):
         self.delete_selected_button = QPushButton("Eliminar Seleccionados")
         self.delete_selected_button.setStyleSheet("""
             QPushButton {
-                background-color: #E74C3C;
+                background-color: rgba(26, 26, 26, 0.95);
                 color: white;
                 border-radius: 8px;
                 padding: 10px;
@@ -1327,7 +1108,7 @@ class AdatavisionMainWindow(QMainWindow):
         self.show_all_button = QPushButton("Mostrar Todos")
         self.show_all_button.setStyleSheet("""
             QPushButton {
-                background-color: rgba(46, 204, 113, 0.9);
+                background-color: rgba(26, 26, 26, 0.95);
                 color: white;
                 border-radius: 8px;
                 padding: 10px;
@@ -1471,9 +1252,6 @@ class AdatavisionMainWindow(QMainWindow):
         
         gen_pass_action = tools_menu.addAction("Generar Contraseñas")
         gen_pass_action.triggered.connect(self.generate_passwords)
-        
-        gen_key_action = tools_menu.addAction("Generar Claves")
-        gen_key_action.triggered.connect(self.generate_keys)
         
         # Menú Ayuda
         help_menu = menubar.addMenu("Ayuda")
@@ -1853,11 +1631,6 @@ class AdatavisionMainWindow(QMainWindow):
         dialog = PasswordGeneratorDialog(self)
         if dialog.exec():
             self.load_temp_password()
-    
-    def generate_keys(self):
-        dialog = KeyGeneratorDialog(self)
-        dialog.exec()
-        self.check_file_status()
     
     def show_modify_dialog(self):
         # Verificar si el archivo está encriptado
