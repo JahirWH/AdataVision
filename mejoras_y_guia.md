@@ -141,6 +141,8 @@ self.limpiar_memoria()
 3. Manejar errores de memoria
 4. Implementar auto-guardado periódico (opcional)
 5. Mostrar indicador de estado (encriptado/modificado)
+6. Implementar la eliminacion de celdas
+7. implementar ocultacion de celdas o filtro
 
 ### 8. Próximos Pasos
 
