@@ -27,8 +27,8 @@ from cryptography.fernet import Fernet
 
 # Constantes globales
 TODAY = str(date.today())
-HEADERS = ['Código', 'Servicio', 'Email', 'Password', 'Usuario', 'Referencia', 'Fecha']
-CSV_HEADERS = ['codigo', 'service', 'email', 'password', 'username', 'web', 'fecha']
+HEADERS = ['Código', 'Servicio', 'Email', 'Password', 'Usuario', 'Referencia', 'Fecha', 'Visible']
+CSV_HEADERS = ['codigo', 'service', 'email', 'password', 'username', 'web', 'fecha', 'visible']
 
 # Funciones auxiliares para manejar info.txt
 def read_info_file():
@@ -67,7 +67,7 @@ class ThemeManager:
         self.current_theme = "dark"
         self.themes = {
             "dark": {
-                "main_bg": "background: url(/img/background.jpg) center center/cover no-repeat fixed;",
+                "main_bg": "background: url(img/background.jpg) center center/cover no-repeat fixed;",
                 "widget_bg": "background-color: rgba(26, 26, 26, 0.48);",
                 "button_bg": "background-color: rgba(45, 45, 45, 0.53);",
                 "button_hover": "background-color: rgba(64, 64, 64, 0.9);",
@@ -892,7 +892,7 @@ class AdatavisionMainWindow(QMainWindow):
         
         # Tabla de datos
         self.data_table = QTableWidget()
-        self.data_table.setColumnCount(7)
+        self.data_table.setColumnCount(8)
         self.data_table.setHorizontalHeaderLabels(HEADERS)
         self.data_table.horizontalHeader().setStretchLastSection(True)
         # Selección por filas y permitir seleccionar varias filas para borrar/ocultar
@@ -1048,6 +1048,49 @@ class AdatavisionMainWindow(QMainWindow):
         # self.generate_password_button.clicked.connect(self.generate_passwords)
         # right_layout.addWidget(self.generate_password_button)
         
+        self.toggle_visibility_button = QPushButton("Mostrar Ocultos")
+        self.toggle_visibility_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(26, 26, 26, 0.95);
+                color: #ffaa00;
+                border: 1px solid rgba(255, 170, 0, 0.2);
+                border-radius: 10px;
+                padding: 12px;
+                font-size: 14px;
+                min-width: 150px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+            QPushButton:hover {
+                background-color: rgba(255, 170, 0, 0.1);
+                border: 1px solid rgba(255, 170, 0, 0.4);
+                box-shadow: 0 0 20px rgba(255, 170, 0, 0.2);
+            }
+        """)
+        self.toggle_visibility_button.clicked.connect(self.toggle_visibility_filter)
+        right_layout.addWidget(self.toggle_visibility_button)
+        self.showing_hidden = False
+        
+        # Botón para alternar visibilidad de filas seleccionadas
+        self.toggle_row_visibility_button = QPushButton("Alternar Visibilidad")
+        self.toggle_row_visibility_button.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(26, 26, 26, 0.95);
+                color: #00ddff;
+                border: 1px solid rgba(0, 221, 255, 0.2);
+                border-radius: 8px;
+                padding: 10px;
+                font-size: 13px;
+                min-width: 150px;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 221, 255, 0.1);
+                border: 1px solid rgba(0, 221, 255, 0.4);
+            }
+        """)
+        self.toggle_row_visibility_button.clicked.connect(self.toggle_row_visibility)
+        right_layout.addWidget(self.toggle_row_visibility_button)
+        
         # self.generate_key_button = QPushButton("Generar Claves")
         # self.generate_key_button.setStyleSheet("""
         #     QPushButton {
@@ -1070,24 +1113,6 @@ class AdatavisionMainWindow(QMainWindow):
         # self.generate_key_button.clicked.connect(self.generate_keys)
         # right_layout.addWidget(self.generate_key_button)
 
-        # Botones para ocultar/mostrar/borrar filas seleccionadas
-        self.hide_selected_button = QPushButton("Ocultar Seleccionados")
-        self.hide_selected_button.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(26, 26, 26, 0.95);
-                color: #ffffff;
-                border-radius: 8px;
-                padding: 10px;
-                font-size: 13px;
-                min-width: 150px;
-            }
-            QPushButton:hover {
-                background-color: rgba(120, 120, 120, 0.95);
-            }
-        """)
-        self.hide_selected_button.clicked.connect(self.hide_selected_rows)
-        right_layout.addWidget(self.hide_selected_button)
-
         self.delete_selected_button = QPushButton("Eliminar Seleccionados")
         self.delete_selected_button.setStyleSheet("""
             QPushButton {
@@ -1104,23 +1129,6 @@ class AdatavisionMainWindow(QMainWindow):
         """)
         self.delete_selected_button.clicked.connect(self.delete_selected_rows)
         right_layout.addWidget(self.delete_selected_button)
-
-        self.show_all_button = QPushButton("Mostrar Todos")
-        self.show_all_button.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(26, 26, 26, 0.95);
-                color: white;
-                border-radius: 8px;
-                padding: 10px;
-                font-size: 13px;
-                min-width: 150px;
-            }
-            QPushButton:hover {
-                background-color: rgba(39, 174, 96, 0.95);
-            }
-        """)
-        self.show_all_button.clicked.connect(self.show_all_rows)
-        right_layout.addWidget(self.show_all_button)
         
         # Agregar los paneles al layout principal
         main_layout.addWidget(left_panel, stretch=7)
@@ -1141,8 +1149,8 @@ class AdatavisionMainWindow(QMainWindow):
         if time_diff > 300:  # 5 minutos
             reply = QMessageBox.question(self, 'Sesión Inactiva',
                                        '¿Desea mantener la sesión activa?',
-                                       QMessageBox.Yes | QMessageBox.No)
-            if reply == QMessageBox.No:
+                                       QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if reply == QMessageBox.StandardButton.No:
                 self.close()
             else:
                 self.last_activity = current_time
@@ -1331,13 +1339,23 @@ class AdatavisionMainWindow(QMainWindow):
             with open(resource_path('Inventario.csv'), 'r', newline='') as file:
                 reader = csv.DictReader(file)
                 for row in reader:
+                    # Obtener el estado de visibilidad, por defecto visible
+                    visible_status = (row.get('visible') or 'visible').strip().lower()
+                    
+                    # Si está mostrando solo visibles y la fila está oculta, saltarla
+                    if not self.showing_hidden and visible_status == 'hidden':
+                        continue
+                    
                     current_row = self.data_table.rowCount()
                     self.data_table.insertRow(current_row)
-                    for j, col in enumerate(CSV_HEADERS):
-                        item = QTableWidgetItem(str(row[col]))
-                        # Hacer que las celdas no sean editables pero sean seleccionables
-                        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
-                        self.data_table.setItem(current_row, j, item)
+                    col_index = 0
+                    for col in CSV_HEADERS:
+                        if col != 'visible':  # No mostrar la columna visible en la tabla
+                            item = QTableWidgetItem(str(row.get(col, '')))
+                            # Hacer que las celdas no sean editables pero sean seleccionables
+                            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable)
+                            self.data_table.setItem(current_row, col_index, item)
+                            col_index += 1
             
             self.data_table.resizeColumnsToContents()
             self.status_bar.showMessage("Inventario cargado correctamente", 3000)
@@ -1470,7 +1488,7 @@ class AdatavisionMainWindow(QMainWindow):
         
         try:
             with open(resource_path('Inventario.csv'), 'a', newline='') as file:
-                file.write(f"\n{code},{service},{email},{password},{username},{reference},{today}")
+                file.write(f"\n{code},{service},{email},{password},{username},{reference},{today},visible")
             
             # Actualizar la fecha de modificación
             now = datetime.now().strftime("%Y-%m-%d")
@@ -1937,6 +1955,60 @@ class AdatavisionMainWindow(QMainWindow):
             QMessageBox.warning(self, "Error", "No se encontró el archivo de inventario")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo eliminar las filas: {str(e)}")
+    
+    def toggle_visibility_filter(self):
+        """Alterna entre mostrar solo visibles u mostrar todos los elementos"""
+        self.showing_hidden = not self.showing_hidden
+        
+        if self.showing_hidden:
+            self.toggle_visibility_button.setText("Mostrar Solo Visibles")
+            self.status_bar.showMessage("Mostrando elementos ocultos", 2000)
+        else:
+            self.toggle_visibility_button.setText("Mostrar Ocultos")
+            self.status_bar.showMessage("Mostrando solo elementos visibles", 2000)
+        
+        self.load_inventory()
+    
+    def toggle_row_visibility(self):
+        """Alterna la visibilidad de las filas seleccionadas entre visible/hidden"""
+        selected = self.data_table.selectionModel().selectedRows()
+        if not selected:
+            QMessageBox.information(self, "Información", "No hay filas seleccionadas")
+            return
+        
+        try:
+            codes_to_toggle = set()
+            for idx in selected:
+                row = idx.row()
+                item = self.data_table.item(row, 0)  # columna 'codigo'
+                if item:
+                    codes_to_toggle.add(item.text())
+            
+            # Leer todas las filas y alternar visibilidad
+            rows = []
+            with open(resource_path('Inventario.csv'), 'r', newline='') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    if row.get('codigo') in codes_to_toggle:
+                        # Alternar: si es visible, hacerla hidden y viceversa
+                        current_status = row.get('visible', 'visible').lower()
+                        row['visible'] = 'hidden' if current_status == 'visible' else 'visible'
+                    rows.append(row)
+            
+            # Reescribir el CSV
+            with open(resource_path('Inventario.csv'), 'w', newline='') as file:
+                writer = csv.DictWriter(file, fieldnames=CSV_HEADERS)
+                writer.writeheader()
+                writer.writerows(rows)
+            
+            # Recargar inventario
+            self.load_inventory()
+            now = datetime.now().strftime("%Y-%m-%d")
+            update_info_field(1, now)
+            
+            QMessageBox.information(self, "Éxito", f"Se alternó la visibilidad de {len(codes_to_toggle)} fila(s)")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo alternar la visibilidad: {str(e)}")
 
 def main():
     app = QApplication(sys.argv)

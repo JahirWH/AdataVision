@@ -1,0 +1,83 @@
+## comando para hacerlo .bin con el modulo nuitka
+
+binary no standalone
+
+### python3 -m nuitka --remove-output --jobs=$(nproc) Adatavision.py
+
+<!--
+nuitka \
+  --standalone \
+  --onefile \
+  --output-filename=adatavision \
+  --include-data-file=Inventario.csv=Inventario.csv \
+  --include-data-file=info.txt=info.txt \
+  --nofollow-import-to=PyQt5 \
+  --nofollow-import-to=PyQt6 \
+  --nofollow-import-to=tkinter \
+  --nofollow-import-to=matplotlib \
+  --nofollow-import-to=numpy \
+  --nofollow-import-to=pandas \
+  --nofollow-import-to=scipy \
+  --nofollow-import-to=PIL \
+  --nofollow-import-to=Pillow \
+  --nofollow-import-to=sqlite3 \
+  --nofollow-import-to=asyncio \
+  --nofollow-import-to=multiprocessing \
+  --nofollow-import-to=unittest \
+  --nofollow-import-to=doctest \
+  --nofollow-import-to=pdb \
+  --nofollow-import-to=profile \
+  --nofollow-import-to=pstats \
+  --nofollow-import-to=turtle \
+  --nofollow-import-to=curses \
+  --nofollow-import-to=readline \
+  --nofollow-import-to=PySide6.QtQml \
+  --nofollow-import-to=PySide6.QtQuick \
+  --nofollow-import-to=PySide6.QtQuick3D \
+  --nofollow-import-to=PySide6.QtNetwork \
+  --nofollow-import-to=PySide6.QtWebEngineWidgets \
+  --nofollow-import-to=PySide6.QtWebEngine \
+  --nofollow-import-to=PySide6.QtWebEngineCore \
+  --nofollow-import-to=PySide6.QtWebKit \
+  --nofollow-import-to=PySide6.QtWebKitWidgets \
+  --nofollow-import-to=PySide6.QtMultimedia \
+  --nofollow-import-to=PySide6.QtMultimediaWidgets \
+  --nofollow-import-to=PySide6.QtBluetooth \
+  --nofollow-import-to=PySide6.QtNfc \
+  --nofollow-import-to=PySide6.QtPositioning \
+  --nofollow-import-to=PySide6.QtLocation \
+  --nofollow-import-to=PySide6.QtSensors \
+  --nofollow-import-to=PySide6.QtSerialPort \
+  --nofollow-import-to=PySide6.QtSql \
+  --nofollow-import-to=PySide6.QtXml \
+  --nofollow-import-to=PySide6.QtSvg \
+  --nofollow-import-to=PySide6.QtSvgWidgets \
+  --nofollow-import-to=PySide6.QtOpenGL \
+  --nofollow-import-to=PySide6.QtOpenGLWidgets \
+  --nofollow-import-to=PySide6.QtCharts \
+  --nofollow-import-to=PySide6.QtDataVisualization \
+  --nofollow-import-to=PySide6.Qt3DCore \
+  --nofollow-import-to=PySide6.Qt3DRender \
+  --nofollow-import-to=PySide6.Qt3DInput \
+  --nofollow-import-to=PySide6.Qt3DLogic \
+  --nofollow-import-to=PySide6.Qt3DAnimation \
+  --nofollow-import-to=PySide6.Qt3DExtras \
+  --nofollow-import-to=PySide6.QtTest \
+  --nofollow-import-to=PySide6.QtHelp \
+  --nofollow-import-to=PySide6.QtPrintSupport \
+  --nofollow-import-to=PySide6.QtDesigner \
+  --nofollow-import-to=PySide6.QtUiTools \
+  --nofollow-import-to=PySide6.QtConcurrent \
+  --nofollow-import-to=PySide6.QtRemoteObjects \
+  --nofollow-import-to=PySide6.QtScxml \
+  --nofollow-import-to=PySide6.QtStateMachine \
+  --nofollow-import-to=PySide6.QtTextToSpeech \
+  --include-module=PySide6.QtWidgets \
+  --include-module=PySide6.QtCore \
+  --include-module=PySide6.QtGui \
+  --include-module=cryptography.fernet \
+  --include-module=cryptography.hazmat.backends.openssl.backend \
+  --include-module=csv \
+  --remove-output \
+  --assume-yes-for-downloads \
+  Adatavision.py -->
